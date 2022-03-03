@@ -1,0 +1,258 @@
+{
+  "description": "Horns Rev 1 of FLORIS Input file",
+  "farm": {
+    "description": "Horns Rev 1 Offshore Wind Farm",
+    "name": "Horns Rev 1",
+    "properties": {
+      "__comment__": "specified_wind_height of -1 uses the first turbine's hub height; After initialization, specified_wind_height is a free parameter.",
+      "air_density": 1.225,
+      "layout_x": [
+        0.0, 400.0
+      ],
+      "layout_y": [
+        0.0, 0.0
+      ],
+      "specified_wind_height": -1,
+      "turbulence_intensity": [
+        0.077
+      ],
+      "wind_direction": [
+        270.0
+      ],
+      "wind_shear": 0.12,
+      "wind_speed": [
+        8.0
+      ],
+      "wind_veer": 0.0,
+      "wind_x": [
+        0
+      ],
+      "wind_y": [
+        0
+      ]
+    },
+    "type": "farm"
+  },
+  "floris_version": "v2.0.0",
+  "logging": {
+    "console": {
+      "enable": false,
+      "level": "INFO"
+    },
+    "file": {
+      "enable": false,
+      "level": "INFO"
+    }
+  },
+  "name": "floris_input_file_Horns_rev_1",
+  "turbine": {
+    "description": "Vestas V-80 2MW",
+    "name": "vestas_2mw",
+    "properties": {
+      "TSR": 8.0,
+      "blade_count": 3,
+      "blade_pitch": 0.0,
+      "generator_efficiency": 1.0,
+      "hub_height": 70.0,
+      "ngrid": 5,
+      "pP": 1.88,
+      "pT": 1.88,
+      "power_thrust_table": {
+        "power": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.328715,
+          0.4045003,
+          0.4278933,
+          0.4308314,
+          0.4302907,
+          0.4325582,
+          0.4380591,
+          0.4446957,
+          0.4497882,
+          0.4510561,
+          0.4470132,
+          0.4370344,
+          0.4212529,
+          0.400384,
+          0.3755298,
+          0.3479953,
+          0.3191285,
+          0.2901932,
+          0.2622744,
+          0.2362157,
+          0.2125859,
+          0.1924776,
+          0.1744452,
+          0.1585967,
+          0.1446113,
+          0.1322231,
+          0.1212104,
+          0.1113875,
+          0.102598,
+          0.0947094,
+          0.0876093,
+          0.0812015,
+          0.0754037,
+          0.0701449,
+          0.065364,
+          0.0610079,
+          0.0570304,
+          0.0533913,
+          0.0500553,
+          0.0469916,
+          0.0441729,
+          0.0415752,
+          0.0391772
+        ],
+        "thrust": [
+          0.8000446,
+          0.8000446,
+          0.8000446,
+          0.8000446,
+          0.8000446,
+          0.8000446,
+          0.8000446,
+          0.8000446,
+          0.8000446,
+          0.8000446,
+          0.8000446,
+          0.8000446,
+          0.8000446,
+          0.8000446,
+          0.8000446,
+          0.8000446,
+          0.8000446,
+          0.7873848,
+          0.758059,
+          0.7100116,
+          0.6448847,
+          0.5676332,
+          0.4853577,
+          0.4057073,
+          0.3352618,
+          0.2782717,
+          0.2360255,
+          0.2069587,
+          0.1874422,
+          0.173027,
+          0.1598057,
+          0.1455079,
+          0.1299916,
+          0.1149337,
+          0.102749,
+          0.0950518,
+          0.0912616,
+          0.0912616,
+          0.0912616,
+          0.0912616,
+          0.0912616,
+          0.0912616,
+          0.0912616,
+          0.0912616,
+          0.0912616,
+          0.0912616,
+          0.0912616,
+          0.0912616
+        ],
+        "wind_speed": [
+          2.0,
+          2.5,
+          3.0,
+          3.5,
+          4.0,
+          4.5,
+          5.0,
+          5.5,
+          6.0,
+          6.5,
+          7.0,
+          7.5,
+          8.0,
+          8.5,
+          9.0,
+          9.5,
+          10.0,
+          10.5,
+          11.0,
+          11.5,
+          12.0,
+          12.5,
+          13.0,
+          13.5,
+          14.0,
+          14.5,
+          15.0,
+          15.5,
+          16.0,
+          16.5,
+          17.0,
+          17.5,
+          18.0,
+          18.5,
+          19.0,
+          19.5,
+          20.0,
+          20.5,
+          21.0,
+          21.5,
+          22.0,
+          22.5,
+          23.0,
+          23.5,
+          24.0,
+          24.5,
+          25.0,
+          25.5
+        ]
+      },
+      "rloc": 0.5,
+      "rotor_diameter": 80.0,
+      "tilt_angle": 0.0,
+      "use_points_on_perimeter": false,
+      "yaw_angle": 0.0
+    },
+    "type": "turbine"
+  },
+  "type": "floris_input",
+  "wake": {
+    "type": "wake",
+    "description": "wake",
+    "name": "gauss_wake",
+    "properties": {
+      "velocity_model": "gauss",
+      "turbulence_model": "crespo_hernandez",
+      "combination_model": "sosfs",
+      "deflection_model": "gauss",
+      "parameters": {
+        "wake_deflection_parameters": {
+          "gauss": {
+            "dm": 1.0,
+            "eps_gain": 0.2,
+            "use_secondary_steering": true
+          }
+        },
+        "wake_turbulence_parameters": {
+          "crespo_hernandez": {
+            "ai": 0.8,
+            "constant": 0.5,
+            "downstream": -0.32,
+            "initial": 0.1
+          }
+        },
+        "wake_velocity_parameters": {
+          "gauss_legacy": {
+            "calculate_VW_velocities": true,
+            "eps_gain": 0.2,
+            "ka": 0.38,
+            "kb": 0.004,
+            "use_yaw_added_recovery": true
+          }
+        }
+      }
+    }
+  }
+}
