@@ -16,21 +16,21 @@ data_dir = "./Ishihara_nonyawed"
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 
 
-def vv_profile_plot(fcase='137_037_vv', D=0.15, H=0.125, vel=2.2):
-    diameter, hub_height, inflow = D, H, vel
+def vv_profile_plot(fcase='137_037_vv', vertical=True,):
+    # diameter, hub_height, inflow = D, H, vel
     distance_list = [2, 4, 6, 8]
-    vel_2d_les = np.loadtxt(f'{data_dir}/{fcase}_2d_les.txt')
-    vel_4d_les = np.loadtxt(f'{data_dir}/{fcase}_4d_les.txt')
-    vel_6d_les = np.loadtxt(f'{data_dir}/{fcase}_6d_les.txt')
-    vel_8d_les = np.loadtxt(f'{data_dir}/{fcase}_8d_les.txt')
+    vel_2d_les = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_2d_les.txt', skiprows=4)
+    vel_4d_les = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_4d_les.txt', skiprows=4)
+    vel_6d_les = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_6d_les.txt', skiprows=4)
+    vel_8d_les = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_8d_les.txt', skiprows=4)
 
-    vel_2d_exp = np.loadtxt(f'{data_dir}/{fcase}_2d_exp.txt')
-    vel_8d_exp = np.loadtxt(f'{data_dir}/{fcase}_8d_exp.txt')
+    vel_2d_exp = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_2d_exp.txt', skiprows=4)
+    vel_8d_exp = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_8d_exp.txt', skiprows=4)
 
-    vel_2d_rsm = np.loadtxt(f'{data_dir}/{fcase}_2d_rsm.txt')
-    vel_4d_rsm = np.loadtxt(f'{data_dir}/{fcase}_4d_rsm.txt')
-    vel_6d_rsm = np.loadtxt(f'{data_dir}/{fcase}_6d_rsm.txt')
-    vel_8d_rsm = np.loadtxt(f'{data_dir}/{fcase}_8d_rsm.txt')
+    vel_2d_rsm = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_2d_rsm.txt', skiprows=4)
+    vel_4d_rsm = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_4d_rsm.txt', skiprows=4)
+    vel_6d_rsm = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_6d_rsm.txt', skiprows=4)
+    vel_8d_rsm = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_8d_rsm.txt', skiprows=4)
 
     fig, ax = plt.subplots(figsize=(10, 4), dpi=120)
     ax.set_xlabel('x/D', ppt.font20t)
@@ -38,9 +38,14 @@ def vv_profile_plot(fcase='137_037_vv', D=0.15, H=0.125, vel=2.2):
     # ax.set_xticks([-2, 10])
     ax.xaxis.set_major_locator(MultipleLocator(2.))
     ax.set_ylabel('z/H', ppt.font20t)
-    ax.set_ylim([0, 2.5])
-    ax.set_yticks([0.5 * i for i in range(6)])
-    ax.set_yticklabels(['', '0.5', '1', '1.5', '2', '2.5'])
+    if vertical:
+        ax.set_ylim([0, 2.5])
+        ax.set_yticks([0.5 * i for i in range(6)])
+        ax.set_yticklabels(['', '0.5', '1', '1.5', '2', '2.5'])
+    else:
+        ax.set_ylim([-1, 1])
+        ax.set_yticks([-1, -0.5, 0., 0.5, 1.])
+        ax.set_yticklabels(['-1', '-0.5', '0', '0.5', '1'])
     # ax.yaxis.set_major_locator(MultipleLocator(0.5))
 
     scaled = 1.
@@ -84,21 +89,21 @@ def vv_profile_plot(fcase='137_037_vv', D=0.15, H=0.125, vel=2.2):
     plt.show()
 
 
-def tv_profile_plot(fcase='137_037_tv', D=0.15, H=0.125, vel=2.2):
-    diameter, hub_height, inflow = D, H, vel
+def tv_profile_plot(fcase='137_037_tv', vertical=True,):
+    # diameter, hub_height, inflow = D, H, vel
     distance_list = [2, 4, 6, 8]
-    turb_2d_les = np.loadtxt(f'{data_dir}/{fcase}_2d_les.txt')
-    turb_4d_les = np.loadtxt(f'{data_dir}/{fcase}_4d_les.txt')
-    turb_6d_les = np.loadtxt(f'{data_dir}/{fcase}_6d_les.txt')
-    turb_8d_les = np.loadtxt(f'{data_dir}/{fcase}_8d_les.txt')
+    turb_2d_les = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_2d_les.txt', skiprows=4)
+    turb_4d_les = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_4d_les.txt', skiprows=4)
+    turb_6d_les = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_6d_les.txt', skiprows=4)
+    turb_8d_les = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_8d_les.txt', skiprows=4)
 
-    turb_2d_exp = np.loadtxt(f'{data_dir}/{fcase}_2d_exp.txt')
-    turb_8d_exp = np.loadtxt(f'{data_dir}/{fcase}_8d_exp.txt')
+    turb_2d_exp = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_2d_exp.txt', skiprows=4)
+    turb_8d_exp = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_8d_exp.txt', skiprows=4)
 
-    turb_2d_rsm = np.loadtxt(f'{data_dir}/{fcase}_2d_rsm.txt')
-    turb_4d_rsm = np.loadtxt(f'{data_dir}/{fcase}_4d_rsm.txt')
-    turb_6d_rsm = np.loadtxt(f'{data_dir}/{fcase}_6d_rsm.txt')
-    turb_8d_rsm = np.loadtxt(f'{data_dir}/{fcase}_8d_rsm.txt')
+    turb_2d_rsm = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_2d_rsm.txt', skiprows=4)
+    turb_4d_rsm = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_4d_rsm.txt', skiprows=4)
+    turb_6d_rsm = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_6d_rsm.txt', skiprows=4)
+    turb_8d_rsm = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_8d_rsm.txt', skiprows=4)
 
     fig, ax = plt.subplots(figsize=(10, 4), dpi=120)
     ax.set_xlabel('x/D', ppt.font20t)
@@ -106,9 +111,14 @@ def tv_profile_plot(fcase='137_037_tv', D=0.15, H=0.125, vel=2.2):
     # ax.set_xticks([-2, 10])
     ax.xaxis.set_major_locator(MultipleLocator(2.))
     ax.set_ylabel('z/H', ppt.font20t)
-    ax.set_ylim([0, 2.5])
-    ax.set_yticks([0.5 * i for i in range(6)])
-    ax.set_yticklabels(['', '0.5', '1', '1.5', '2', '2.5'])
+    if vertical:
+        ax.set_ylim([0, 2.5])
+        ax.set_yticks([0.5 * i for i in range(6)])
+        ax.set_yticklabels(['', '0.5', '1', '1.5', '2', '2.5'])
+    else:
+        ax.set_ylim([-1, 1])
+        ax.set_yticks([-1, -0.5, 0., 0.5, 1.])
+        ax.set_yticklabels(['-1', '-0.5', '0', '0.5', '1'])
     # ax.yaxis.set_major_locator(MultipleLocator(0.5))
 
     scaled = 1.
@@ -126,6 +136,7 @@ def tv_profile_plot(fcase='137_037_tv', D=0.15, H=0.125, vel=2.2):
         #         markeredgewidth=1.)
 
         if exp_data[i] is not None:
+            print(i)
             exp_x, exp_y = exp_data[i][:, 0] + 2 * (i + 1), exp_data[i][:, 1]
             ax.plot(exp_x, exp_y, c='w', lw=0., label='Exp',
                     markersize=10, marker='o', markeredgecolor='k',
@@ -170,5 +181,5 @@ def turbine_plot(ax, D, H, direction='v', origin=True):
 
 
 if __name__ == "__main__":
-    # vv_profile_plot('137_037_vv')
-    tv_profile_plot('137_037_tv')
+    vv_profile_plot('137_081_vv', vertical=True)
+    # tv_profile_plot('137_081_tv', vertical=True)
