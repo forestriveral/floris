@@ -27,20 +27,26 @@ of changes and generate plots from those simulations.
 
 # Create the plotting objects using matplotlib
 # fig, axarr = plt.subplots(2, 3, figsize=(12, 5))
-fig, axarr = plt.subplots(1, 1, figsize=(12, 5))
-# axarr = axarr.flatten()
+fig, axarr = plt.subplots(2, 1, figsize=(12, 5))
+axarr = axarr.flatten()
 
 MIN_WS = 1.0
-MAX_WS = 8.0
+MAX_WS = 10.0
 
 # Initialize FLORIS with the given input file via FlorisInterface
-fi = FlorisInterface("./jensen.yaml")
+fi = FlorisInterface("./gch.yaml")
 
-
+plot_height = 90.
+angles = np.array([[[20., 10., 0.]]])
 # Plot a horizatonal slice of the initial configuration
-horizontal_plane = fi.calculate_horizontal_plane(height=90.0)
-visualize_cut_plane(horizontal_plane, ax=axarr, title="Initial setup", minSpeed=MIN_WS, maxSpeed=MAX_WS)
+horizontal_plane = fi.calculate_horizontal_plane(height=plot_height, yaw_angles=angles)
+visualize_cut_plane(horizontal_plane, ax=axarr[0], title="Initial setup", minSpeed=MIN_WS, maxSpeed=MAX_WS)
 
+turbine_powers = fi.get_turbine_powers() / 1000.
+print("Powers Shape: ", turbine_powers.shape, "\nTurbine Power: ", turbine_powers)
+print("Farm Power: ", np.sum(turbine_powers, axis=2)[0, 0])
+
+print("Average Velocity: ", fi.get_turbine_average_velocities()[0, 0])
 
 # Change the wind speed
 # horizontal_plane = fi.calculate_horizontal_plane(ws=[7.0], height=90.0)
@@ -48,9 +54,9 @@ visualize_cut_plane(horizontal_plane, ax=axarr, title="Initial setup", minSpeed=
 
 
 # Change the wind shear, reset the wind speed, and plot a vertical slice
-# fi.reinitialize( wind_shear=0.2, wind_speeds=[8.0] )
-# y_plane = fi.calculate_y_plane(crossstream_dist=0.0)
-# visualize_cut_plane(y_plane, ax=axarr[2], title="Wind shear at 0.2", minSpeed=MIN_WS, maxSpeed=MAX_WS)
+fi.reinitialize(wind_shear=0.2, wind_speeds=[8.0])
+y_plane = fi.calculate_y_plane(crossstream_dist=0.0)
+visualize_cut_plane(y_plane, ax=axarr[1], title="Wind shear at 0.2", minSpeed=MIN_WS, maxSpeed=MAX_WS)
 
 
 # Change the farm layout
