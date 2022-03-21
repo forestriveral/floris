@@ -36,7 +36,7 @@ MAX_WS = 10.0
 # Initialize FLORIS with the given input file via FlorisInterface
 fi = FlorisInterface("./gch.yaml")
 
-plot_height = 90.
+plot_height = 120.
 angles = np.array([[[20., 10., 0.]]])
 # Plot a horizatonal slice of the initial configuration
 horizontal_plane = fi.calculate_horizontal_plane(height=plot_height, yaw_angles=angles)
@@ -54,8 +54,8 @@ print("Average Velocity: ", fi.get_turbine_average_velocities()[0, 0])
 
 
 # Change the wind shear, reset the wind speed, and plot a vertical slice
-fi.reinitialize(wind_shear=0.2, wind_speeds=[8.0])
-y_plane = fi.calculate_y_plane(crossstream_dist=0.0)
+fi.reinitialize(wind_shear=0.12)
+y_plane = fi.calculate_y_plane(crossstream_dist=63.0)
 visualize_cut_plane(y_plane, ax=axarr[1], title="Wind shear at 0.2", minSpeed=MIN_WS, maxSpeed=MAX_WS)
 
 
