@@ -41,7 +41,8 @@ class WindFarmLayout(object):
                    "LoA": "London Array",
                    "Rdd": "Rodsand II",
                    "NrH": "North Hoyle",
-                   "Nkr": "Nørrekær"}
+                   "Nkr": "Nørrekær",
+                   "template": "template",}
         return self.reader(wf_name[farm])
 
 

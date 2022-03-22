@@ -1,14 +1,16 @@
+from __future__ import annotations
+
+import copy
 import numpy as np
 import import_string
+from pathlib import Path
+from typing import Any, Tuple
+from attrs import define, field
 import matplotlib.pyplot as plt
 
-import floris.tools as wfct
-import floris.tools.cut_plane as cp
-import floris.tools.wind_rose as rose
-import floris.tools.power_rose as pr
-from floris.simulation.input_reader import InputReader
-from floris.tools.optimization.scipy.yaw_wind_rose import \
-    YawOptimizationWindRose
+from floris.simulation import Floris
+from floris.tools import FlorisInterface
+from floris.logging_manager import LoggerBase
 
 from floris.utils.tools import operation as ops
 from floris.utils.tools.layout_loader import WindFarmLayout as WFL
@@ -19,22 +21,41 @@ from floris.utils.visualization import evaluation as veval
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 
 
-class LayoutPower(object):
-    def __init__(self, farm, wakes=None, turbines=None):
-        self.fi = wfct.floris_interface.FlorisInterface(farm)
-        self.turbine = self.turbine_loader(turbines) \
-            if turbines is not None else {}
-        self.layout = [self.fi.layout_x, self.fi.layout_y]
+class FarmPower(FlorisInterface):
+    def __init__(self,
+                 config_file: dict | str | Path,
+                 wake: dict | None = None,
+                 layout: str | None = None,
+                 turbine: list | None = None,
+                 het_map = None,):
+        configuration = f"../inputs/{config_file}.yaml"
+        FlorisInterface.__init__(self, configuration, het_map=het_map)
+        self.wake = self.wake_init(wake)
+        self.layout = self.layout_init(config_file, layout)
 
-    def turbine_loader(self, turbine_list):
+    def wake_init(self, wake):
+        if wake is not None:
+            required_strings = self.floris.wake.model_strings.keys()
+            assert isinstance(wake, dict) and wake.keys().issubset(required_strings)
+            floris_dict = copy.deepcopy(self.floris.as_dict())
+            for key, value in wake.items():
+                floris_dict['wake']['model_strings'][key] = value
+            self.floris = Floris.from_dict(floris_dict)
+            return wake
+        else:
+            return self.floris.wake.model_strings
+
+    def layout_init(self, config_file, layout):
+        layout = layout or WFL.layout(Path(config_file).name)
+        self.reinitialize(layout=layout)
+        return layout
+
+    def turbine_init(self, turbine_list):
         # import the turbine parameters for the calaculation of multiple turbine types
         # turbine_list = ["Vesta_2MW", "NREL_5MW"]
         if turbine_list is None:
             pass
         return [ops.json_load(turbine_list[k]) for _, k in enumerate(turbine_list.keys())]
-
-    def wake_loader(self, wake_list):
-        pass
 
     def refer_loader(self, ref_data):
         # data_dir = ref_data.split('.')[0]
@@ -70,17 +91,17 @@ class LayoutPower(object):
                                           y_resolution=500,)
         if ax is None:
             fig, ax = plt.subplots(figsize=(10, 8), dpi=150)
-        wfct.visualization.visualize_cut_plane(hor_plane, ax=ax)
-        wfct.visualization.plot_turbines(ax, self.fi.layout_x, self.fi.layout_y,
-                                         self.fi.get_yaw_angles(), D)
+        # wfct.visualization.visualize_cut_plane(hor_plane, ax=ax)
+        # wfct.visualization.plot_turbines(ax, self.fi.layout_x, self.fi.layout_y,
+        #                                  self.fi.get_yaw_angles(), D)
         # plt.savefig("images/hr1_270.png", format='png', dpi=200, bbox_inches='tight')
         plt.show()
 
-    def turbulence_plot(self, ):
+    def turb_plot(self, ):
         pass
 
 
 
 if __name__ == "__main__":
-    LP = LayoutPower('inputs/horns_1.json')
-    LP.evaluation()
+    LP = FarmPower('farms/template')
+    # LP.evaluation()
