@@ -1,4 +1,4 @@
-import os
+import os, fnmatch, pathlib
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -11,8 +11,9 @@ class WindFarmLayout(object):
 
     @classmethod
     def reader(self, txt_file):
-        file_dir = os.path.dirname(os.path.abspath(__file__))
-        layout = np.around(np.loadtxt(f"../inputs/layouts/{txt_file}.txt"), 2)
+        # file_dir = os.path.dirname(os.path.abspath(__file__))
+        file_dir = pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent
+        layout = np.around(np.loadtxt(f"{file_dir}/inputs/layouts/{txt_file}.txt"), 2)
         return (list(layout[:, 0]), list(layout[:, 1]))
 
     @classmethod
@@ -41,9 +42,11 @@ class WindFarmLayout(object):
                    "LoA": "London Array",
                    "Rdd": "Rodsand II",
                    "NrH": "North Hoyle",
-                   "Nkr": "Nørrekær",
-                   "template": "template",}
-        return self.reader(wf_name[farm])
+                   "Nkr": "Nørrekær",}
+        if farm in wf_name.keys():
+            return self.reader(wf_name[farm])
+        else:
+            return self.reader(farm)
 
 
 def HornsRev1_generator(): # HR1
@@ -66,7 +69,7 @@ def HornsRev1_generator(): # HR1
 
 
 if __name__ == "__main__":
-    
-    layout = WindFarmLayout.layout('HR2')
+
+    layout = WindFarmLayout.layout('Template')
     print(layout)
     # WindFarmLayout.plot(layout)
