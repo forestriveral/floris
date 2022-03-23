@@ -12,7 +12,7 @@ from floris.simulation import Floris
 from floris.tools import FlorisInterface
 from floris.logging_manager import LoggerBase
 
-from floris.utils.tools import operation as ops
+from floris.utils.tools import operation as tops
 from floris.utils.tools.layout_loader import WindFarmLayout as WFL
 from floris.utils.visualization import evaluation as veval
 
@@ -41,9 +41,7 @@ class FarmPower(FlorisInterface):
             for key, value in wake.items():
                 floris_dict['wake']['model_strings'][key] = value
             self.floris = Floris.from_dict(floris_dict)
-            return wake
-        else:
-            return self.floris.wake.model_strings
+        return self.floris.wake.model_strings
 
     def layout_init(self, config_file, layout):
         layout = layout or WFL.layout(Path(config_file).name)
@@ -55,7 +53,7 @@ class FarmPower(FlorisInterface):
         # turbine_list = ["Vesta_2MW", "NREL_5MW"]
         if turbine_list is None:
             pass
-        return [ops.json_load(turbine_list[k]) for _, k in enumerate(turbine_list.keys())]
+        return [tops.json_load(turbine_list[k]) for _, k in enumerate(turbine_list.keys())]
 
     def refer_loader(self, ref_data):
         # data_dir = ref_data.split('.')[0]

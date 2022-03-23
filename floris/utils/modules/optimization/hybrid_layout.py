@@ -1,10 +1,10 @@
 import os
 import numpy as np
 
-from floris.utils.modules import wflo_layout as wflayout
 from floris.utils.tools import opt_ops as optops
-from floris.utils.tools import ga_layout_opt as EAOptimizer
-from floris.utils.tools import pso_layout_opt as PSOptimizer
+from floris.utils.modules.optimization import ga_layout as EAOptimizer
+from floris.utils.modules.optimization import pso_layout as PSOptimizer
+from floris.utils.modules.optimization import wflo_layout as wflayout
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 #                                     MAIN                                     #

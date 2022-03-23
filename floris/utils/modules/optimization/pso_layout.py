@@ -2,11 +2,11 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from floris.utils.modules import wflo_layout as wflayout
-from floris.utils.modules.skopt_pso import PSO as skpso
-from floris.utils.tools import farm_config as fconfig
 from floris.utils.tools import opt_ops as optops
+from floris.utils.tools import farm_config as fconfig
+from floris.utils.tools.skopt_pso import PSO as skpso
 from floris.utils.visualization import wflo_opt as vwopt
+from floris.utils.modules.optimization import wflo_layout as wflayout
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #

@@ -5,9 +5,9 @@ import geatpy as ea
 import numpy as np
 import pandas as pd
 
-from floris.utils.modules.wflo_layout import LayoutPower
-from floris.utils.tools import valid_ops as vops
+from floris.utils.tools import eval_ops as eops
 from floris.utils.tools import farm_config as fconfig
+from floris.utils.modules.optimization.wflo_layout import LayoutPower
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 #                                     MAIN                                     #
@@ -29,7 +29,7 @@ class YawedLayoutPower(LayoutPower):
         return powers
 
     def yawed_generator(self, layouts, N=500):
-        yawed_data = vops.random_yawed_generator(layouts.shape[0], N)
+        yawed_data = eops.random_yawed_generator(layouts.shape[0], N)
         power_data = np.zeros((N, layouts.shape[0]))
         for i in range(N):
             power_data[i, :] = self.yawed_power(
@@ -37,7 +37,7 @@ class YawedLayoutPower(LayoutPower):
         return yawed_data, power_data
 
     def yawed_data(self, dsave=None):
-        layouts = vops.yawed_layout_generator()
+        layouts = eops.yawed_layout_generator()
         yawed_data = {"yawed":[], "power":[]}
         for i, layout in enumerate(layouts):
             # print(f"layout {i} shape", layout.shape)
@@ -53,8 +53,8 @@ class YawedLayoutPower(LayoutPower):
 
 def single_yawed(config, params, yawed, layout):
     theta_w = config['theta']
-    wt_loc = vops.coordinate_transform(layout, theta_w)
-    wt_index = vops.wind_turbines_sort(wt_loc)
+    wt_loc = eops.coordinate_transform(layout, theta_w)
+    wt_index = eops.wind_turbines_sort(wt_loc)
     # print(wt_index)
     assert len(wt_index) == wt_loc.shape[0]
     deficits = np.zeros(len(wt_index))
@@ -65,7 +65,7 @@ def single_yawed(config, params, yawed, layout):
             deficit_tab[0, -2], deficit_tab[0, -1] = 0., float(config["inflow"])
             if config["tim"] is not None:
                 turbulence_tab[0, -2], turbulence_tab[0, -1] = 0., config["Iam"]
-        wake_model = vops.find_and_load_model(config["wm"], model="wm")
+        wake_model = eops.find_and_load_model(config["wm"], model="wm")
         ct_t, ytheta = 4 * yawed[t, 1] * (1 - yawed[t, 1]), yawed[t, 0]
         wake = wake_model(wt_loc[t, :], deficit_tab[i, -1], ct_t,
                           params.iloc[t]["D_r"], params.iloc[t]["z_hub"], T_m=config["tim"],
@@ -74,7 +74,7 @@ def single_yawed(config, params, yawed, layout):
             for j, wt in enumerate(wt_index[i+1:]):
                 deficit_tab[i, i + j + 1], turbulence_tab[i, i + j + 1] = \
                     wake.wake_loss(wt_loc[wt, :], params.iloc[wt]["D_r"], debug=None)
-            multiple_wake_model = vops.find_and_load_model(config["wsm"], model="wsm")
+            multiple_wake_model = eops.find_and_load_model(config["wsm"], model="wsm")
             total_deficit = multiple_wake_model(deficit_tab[:, :], i + 1,
                                                 inflow=float(config["inflow"]))
             if config["tim"] is not None:
@@ -90,7 +90,7 @@ def single_yawed(config, params, yawed, layout):
             deficit_tab[i + 1, -1] = float(config["inflow"]) * (1 - total_deficit)
         else:
             break
-        deficits[:] = vops.wt_power_reorder(wt_index, deficit_tab[:, -1])
+        deficits[:] = eops.wt_power_reorder(wt_index, deficit_tab[:, -1])
     # print(deficit_tab)
     return deficits
 
@@ -157,7 +157,7 @@ class YawedOpt(object):
         BestIndi.save("solution/Results") # 把最优个体的信息保存到文件中
         """=================================输出结果======================="""
         print('Evaluation times：{}'.format(myAlgorithm.evalsNum))
-        print('Elapsed time %s %s' % vops.time_formator(myAlgorithm.passTime))
+        print('Elapsed time %s %s' % eops.time_formator(myAlgorithm.passTime))
         if BestIndi.sizes != 0:
             yawed_data = pd.read_csv(
                 f"../solution/Results/Phen.csv",
@@ -187,7 +187,7 @@ def yawed_case_run(N, pop=None, maxg=None):
         "tim": None,
         "tsm": None,}
     
-    layout_5, layout_9, layout_25 = vops.yawed_layout_generator()
+    layout_5, layout_9, layout_25 = eops.yawed_layout_generator()
     
     YawedOpt(config, eval(f"layout_{N}")).solution()
 

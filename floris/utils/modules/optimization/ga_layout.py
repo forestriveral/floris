@@ -4,7 +4,7 @@ import geatpy as ea
 import numpy as np
 
 from floris.utils.tools import opt_ops as optops
-from floris.utils.modules import wflo_layout as wflayout
+from floris.utils.modules.optimization import wflo_layout as wflayout
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #

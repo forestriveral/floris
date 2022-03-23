@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from scipy import integrate
 
-from floris.utils.tools import valid_ops as vops
+from floris.utils.tools import eval_ops as vops
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #

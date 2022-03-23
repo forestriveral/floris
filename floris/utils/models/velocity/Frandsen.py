@@ -1,6 +1,6 @@
 import numpy as np
 
-from floris.utils.models.wakes.Jensen import JensenWake
+from floris.utils.models.velocity.Jensen import JensenWake
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 #                                     MAIN                                     #

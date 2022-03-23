@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib.ticker import MultipleLocator
 
-import floris.tools as wfct
-from floris.utils.modules.yaw_simulator import YawSimulator
+from floris.tools import FlorisInterface
+from floris.utils.modules.control.yaw_simulator import YawSimulator
 from floris.utils.visualization import property as ppt
 
 

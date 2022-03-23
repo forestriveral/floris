@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import integrate
 
-from floris.utils.tools import valid_ops as vops
+from floris.utils.tools import eval_ops as vops
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #

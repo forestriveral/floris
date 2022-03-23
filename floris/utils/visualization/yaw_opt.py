@@ -2,9 +2,9 @@ import copy
 import numpy as np
 import matplotlib.pyplot as plt
 
-import floris.tools as wfct
+from floris.tools import FlorisInterface
 from floris.utils.visualization import property as ppt
-from floris.utils.modules.yaw_simulator import YawSimulator as YS
+from floris.utils.modules.control.yaw_simulator import YawSimulator as YS
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #

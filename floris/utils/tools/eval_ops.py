@@ -123,11 +123,11 @@ def wake_model_load(name, model):
     if name is None:
         return None
     else:
-        from floris.utils.models.wakes import Bastankhah, Frandsen, Ishihara, \
+        from floris.utils.models.velocity import Bastankhah, Frandsen, Ishihara, \
             Jensen, Larsen, XieArcher
-        from floris.utils.models.wakes.superposition import Geometric_Sum, Linear_Sum, \
+        from floris.utils.models.velocity.superposition import Geometric_Sum, Linear_Sum, \
             Energy_Balance, Sum_Squares
-        from floris.utils.models.turbs.added import quart, Crespo, Frandsen_turb, \
+        from floris.utils.models.turbulence.added import quart, Crespo, Frandsen_turb, \
             Larsen_turb, tian, gao, IEC
         from floris.utils.tools.energy_cost import COE, LCOE
 

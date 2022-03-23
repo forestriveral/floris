@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy import signal
 
-import floris.tools as wfct
+from floris.tools import FlorisInterface
 from floris.tools.optimization.scipy.yaw import YawOptimization
 
 from floris.utils.visualization import property as ppt
@@ -16,9 +16,9 @@ from floris.utils.visualization import yaw_opt as yopt
 
 
 class YawSimulator(object):
-    def __init__(self, farm, wind, params=None, wakes=None, filted=True,
-                 results=None):
-        self.fi = wfct.floris_interface.FlorisInterface(farm)
+    def __init__(self, farm, wind, params=None, wakes=None,
+                 filted=True, results=None):
+        self.fi = FlorisInterface(farm)
         self.num_t = len(self.fi.floris.farm.turbine_map.turbines)
 
         # yawing parameters setting
