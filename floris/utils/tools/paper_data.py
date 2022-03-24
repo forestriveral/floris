@@ -1,11 +1,14 @@
 import os
 import numpy as np
 import pandas as pd
+from pathlib import Path
 
 from attrs import define, field
 
+from floris.utils.tools.layout_loader import WindFarmLayout as WFL
 
-baseline_data_dir = "../data/baselines"
+file_dir = os.path.dirname(os.path.abspath(__file__))
+baseline_data_dir = Path(file_dir).parent / 'data/baselines/'
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
@@ -14,11 +17,24 @@ baseline_data_dir = "../data/baselines"
 
 class WP_2015(object):
 
-    def __init__(self,):
+    required_layout = {"HR1": "Horns Rev 1",}
+
+    def __init__(self, ):
         pass
 
     @classmethod
-    def Fig_6(self, direction, sectors):
+    def baseline(cls, fig_id='Fig_6', **kwargs):
+        default_baseline = {'Fig_6': cls.Fig_6,}
+        if fig_id in default_baseline.keys():
+            return default_baseline[fig_id](**kwargs)
+        else:
+            raise ValueError(f"Data of {fig_id} is not supported")
+
+    @classmethod
+    def Fig_6(cls, **kwargs):
+        layout = kwargs.get('layout', None)
+        assert layout in WFL.get_layout_name('Horns Rev 1')
+        direction, sector = kwargs['direction'], kwargs['sector']
         def turbine_array(direction):
             assert direction in [270, 222, 312], \
                 "Invalid wind direction in WP_2015!"
@@ -27,7 +43,7 @@ class WP_2015(object):
                 wts_270 = np.zeros((8, 8))
                 for i in range(8):
                     wts_270[i, :] = wt_array_270 + i * 1
-                return wts_270.astype(np.int)
+                return wts_270.astype(np.int32)
             if direction == 222:
                 wt_array_222 = np.array([8, 15, 22, 29, 36])
                 wts_222 = np.zeros((8, 5))
@@ -36,7 +52,7 @@ class WP_2015(object):
                     wts_222[i, :] = wt_array_222 - (3 - i)
                 for i in range(4):
                     wts_222[4 + i] = wt_array_222 + 8 * (i + 1)
-                return wts_222.astype(np.int)
+                return wts_222.astype(np.int32)
             else:
                 wt_array_312 = np.array([1, 10, 19, 28, 37])
                 wts_312 = np.zeros((8, 5))
@@ -45,29 +61,30 @@ class WP_2015(object):
                     wts_312[i, :] = wt_array_312 + 8 * (4 - i)
                 for i in range(3):
                     wts_312[5 + i] = wt_array_312 + (i + 1)
-                return wts_312.astype(np.int)
+                return wts_312.astype(np.int32)
 
-        def power_data(direction, sectors):
-            assert len(set(sectors + [1., 5., 10., 15.])) == 4, \
+        def power_data(direction, sector):
+            assert len(set(sector + [1., 5., 10., 15.])) == 4, \
                 "Invalid wind sector in WP_2015!"
             file_dir = os.path.dirname(os.path.abspath(__file__))
-            data = pd.read_csv(
-                os.path.join(file_dir, f"{baseline_data_dir}/WP_2015/Fig_6/LES_OBS_{int(direction)}.csv"), header=0)
-            if sectors:
+            data_path = f"{baseline_data_dir}/WP_2015/Fig_6/LES_OBS_{int(direction)}.csv"
+            data = pd.read_csv(data_path, header=0)
+            if sector:
                 cols = []
-                for s in sectors:
+                for s in sector:
                     cols.extend([f"{direction}+{int(s)}+LES", f"{direction}+{int(s)}+OBS"])
                 return data[cols]
             else:
                 return data.iloc[:, :8]
-        return turbine_array(direction), power_data(direction, sectors)
+
+        return turbine_array(direction), power_data(direction, sector)
 
 
 class AV_2018(object):
 
-    layout = {"Lgd": "Lillgrund",
-              "Anh": "Anholt",
-              "Nkr": "Nørrekær"}
+    required_layout = {"Lgd": "Lillgrund",
+                       "Anh": "Anholt",
+                       "Nkr": "Nørrekær"}
 
     direction = {"Lillgrund": [42., 75., 90., 120., 180., 222., 255., 270., 300.],
                  "Anholt": [75., 255.],
@@ -106,22 +123,37 @@ class AV_2018(object):
         pass
 
     @classmethod
-    def array_power_data(self, layout, direction):
-        assert layout in self.layout.keys()
-        assert direction in self.turbine[self.layout[layout]].keys()
-        turbine_ind = self.turbine[self.layout[layout]][direction]
-        data_file = f"{baseline_data_dir}/AV_2018/{self.layout[layout]}/{layout}_wd_{direction}"
-        array_power = np.around(np.loadtxt(f"{data_file}.txt"), 4)
-        return turbine_ind, array_power
+    def baseline(cls, fig_id='Fig_4_6', **kwargs):
+        default_baseline = {'Fig_4_6': cls.Fig_4_6,
+                            'Fig_10_14': cls.Fig_10_14,}
+        if fig_id in default_baseline.keys():
+            return default_baseline[fig_id](**kwargs)
+        else:
+            raise ValueError(f"Data of {fig_id} is not supported")
 
     @classmethod
-    def sector_power_data(self, layout, turbine):
-        assert layout in self.layout.keys()
-        assert turbine in self.turbine_sector[self.layout[layout]].keys()
-        direction_range = self.turbine_sector[self.layout[layout]][turbine]
-        data_file = f"{baseline_data_dir}/AV_2018/{self.layout[layout]}/{layout}_t_{turbine}"
+    def Fig_4_6(cls, **kwargs):
+        # Array power data of figure 4, 5, 6
+        layout, direction = kwargs.get('layout', None), kwargs.get('direction', None)
+        assert layout and direction, "Invalid layout or direction!"
+        layout_short, layout_full = WFL.get_layout_name(layout, cls.required_layout)
+        assert direction in cls.turbine[layout_full].keys()
+        turbine_ind = cls.turbine[layout_full][direction]
+        data_file = f"{baseline_data_dir}/AV_2018/{layout_full}/{layout_short}_wd_{direction}"
+        array_power = np.around(np.loadtxt(f"{data_file}.txt"), 4)
+        return np.array(turbine_ind)[None, :], array_power
+
+    @classmethod
+    def Fig_10_14(cls, **kwargs):
+        # Turbine power data of figure 10, 11, 12, 13, 14
+        layout, turbine = kwargs.get('layout', None), kwargs.get('turbine', None)
+        assert layout and turbine, "Invalid layout or turbine!"
+        layout_short, layout_full = WFL.get_layout_name(layout, cls.required_layout)
+        assert turbine in cls.turbine_sector[layout_full].keys()
+        direction_range = cls.turbine_sector[layout_full][turbine]
+        data_file = f"{baseline_data_dir}/AV_2018/{layout_full}/{layout_short}_t_{turbine}"
         turbine_power = np.around(np.loadtxt(f"{data_file}.txt"), 4)
-        return direction_range, turbine_power
+        return np.array(direction_range[None, :]), turbine_power
 
     @staticmethod
     def combined_data_load():
@@ -131,8 +163,7 @@ class AV_2018(object):
 
 
 if __name__ == "__main__":
-    # wts, pd = WP_2015.Fig_6(270, [1, 5])
-    # print(wts, pd)
-    ind = AV_2018.array_power_data("Lgd", 42)
-    print(ind)
-
+    wts, pd = WP_2015.baseline(layout="HR1", direction=270, sector=[1, 5])
+    print(wts, pd)
+    # ind = AV_2018.baseline(layout="Lgd", direction=42)
+    # print(ind)

@@ -6,18 +6,30 @@ import numpy as np
 
 class WindFarmLayout(object):
 
+    wf_name = {"HR1": "Horns Rev 1",
+               "HR2": "Horns Rev 2",
+               "Anh": "Anholt",
+               "Lgd": "Lillgrund",
+               "Nys": "Nysted",
+               "LoA": "London Array",
+               "Rdd": "Rodsand II",
+               "NrH": "North Hoyle",
+               "Nkr": "Nørrekær", }
+
+    wf_name_reverse = {v: k for k, v in wf_name.items()}
+
     def __init__(self, ):
         pass
 
     @classmethod
-    def reader(self, txt_file):
+    def reader(cls, txt_file):
         # file_dir = os.path.dirname(os.path.abspath(__file__))
         file_dir = pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent
         layout = np.around(np.loadtxt(f"{file_dir}/inputs/layouts/{txt_file}.txt"), 2)
         return (list(layout[:, 0]), list(layout[:, 1]))
 
     @classmethod
-    def plot(self, layout, annotate=None):
+    def plot(cls, layout, annotate=None):
         x, y = np.array(layout[0]), np.array(layout[1])
         xb, yb = (np.max(x) - np.min(x)) / 5, (np.max(y) - np.min(y)) / 5
         plt.figure(dpi=100)
@@ -33,20 +45,23 @@ class WindFarmLayout(object):
         plt.show()
 
     @classmethod
-    def layout(self, farm):
-        wf_name = {"HR1": "Horns Rev 1",
-                   "HR2": "Horns Rev 2",
-                   "Anh": "Anholt",
-                   "Lgd": "Lillgrund",
-                   "Nys": "Nysted",
-                   "LoA": "London Array",
-                   "Rdd": "Rodsand II",
-                   "NrH": "North Hoyle",
-                   "Nkr": "Nørrekær",}
-        if farm in wf_name.keys():
-            return self.reader(wf_name[farm])
+    def layout(cls, farm):
+        if farm in cls.wf_name.keys():
+            return cls.reader(cls.wf_name[farm])
         else:
-            return self.reader(farm)
+            return cls.reader(farm)
+
+    @classmethod
+    def get_layout_name(cls, name, layout=None):
+        layout = layout or cls.wf_name
+        assert name in cls.wf_name.keys() or name in cls.wf_name.values()
+        if name in layout.keys():
+            return name, layout[name]
+        elif name in layout.values():
+            layout_reverse = {v: k for k, v in layout.items()}
+            return layout_reverse[name], name
+        else:
+            raise ValueError(f"{name} is not in {layout.keys()} or {layout.values()}")
 
 
 def HornsRev1_generator(): # HR1
@@ -65,7 +80,6 @@ def HornsRev1_generator(): # HR1
                 num += 1
         # np.savetxt('./layouts/Horns Rev 1.txt', np.around(layout, 2))
         return (list(np.around(layout, 2)[:, 0]), list(np.around(layout, 2)[:, 1]))
-
 
 
 if __name__ == "__main__":
