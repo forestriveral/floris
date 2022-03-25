@@ -30,8 +30,7 @@ font18t = {'family': 'Times New Roman',
 
 font18 = {'family': 'Times New Roman',
            'weight': 'bold',
-           'size': 18,
-           'color': 'k', }
+           'size': 18, }
 
 font20 = {'family': 'Times New Roman',
           'weight': 'bold',

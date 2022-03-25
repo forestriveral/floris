@@ -3,13 +3,13 @@ from __future__ import annotations
 import os
 import copy
 import fnmatch
-import typing
+# import typing
 import yaml
 import numpy as np
 import import_string
 from pathlib import Path
-from typing import Any, Tuple
-from attrs import define, field
+# from typing import Any, Tuple
+# from attrs import define, field
 import matplotlib.pyplot as plt
 from collections import OrderedDict
 
@@ -21,9 +21,10 @@ from floris.type_dec import NDArrayFloat, FromDictMixin
 from floris.simulation.wake import MODEL_MAP
 from floris.utilities import load_yaml
 
+from floris.tools import visualize_cut_plane
 from floris.utils.tools import operation as tops
 from floris.utils.tools.layout_loader import WindFarmLayout as WFL
-from floris.utils.visualization import evaluation as veval
+# from floris.utils.visualization import evaluation as veval
 
 
 
@@ -43,7 +44,13 @@ def _turbine_library_loader():
 
 
 class FarmPower(FlorisInterface):
+
     turbine_library = _turbine_library_loader()
+    parameter_strings = ["velocity_param", "deflection_param", "turbulence_param"]
+    model_strings = ["velocity_model", "deflection_model",
+                     "deflection_model", "combination_model"]
+    required_strings = parameter_strings + model_strings
+
     def __init__(self,
                  config_file: dict | str | Path,
                  layout: str | None = None,
@@ -71,17 +78,14 @@ class FarmPower(FlorisInterface):
 
     def wake_init(self, wake: dict | None):
         if wake is not None:
-            # required_strings = self.floris.wake.model_strings.keys()
-            wake_parameters = ["velocity_param", "deflection_param", "turbulence_param"]
-            wake_models = ["velocity_model", "deflection_model", "deflection_model", "combination_model"]
-            required_strings = wake_parameters + wake_models
-            assert isinstance(wake, dict) and set(wake.keys()).issubset(set(required_strings))
+            assert isinstance(wake, dict) and set(wake.keys()).issubset(
+                set(self.required_strings))
             floris_dict = copy.deepcopy(self.floris.as_dict())
             for key, value in wake.items():
                 if key in floris_dict['wake']['model_strings'].keys():
                     assert value in MODEL_MAP[key].keys()
                     floris_dict['wake']['model_strings'][key] = value
-                elif key in wake_parameters:
+                elif key in self.parameter_strings:
                     key_name = key.split('_')[0] + '_model'
                     model_name = wake[key_name] if key_name in wake.keys() \
                         else self.origin_floris.wake.model_strings[key_name]
@@ -103,7 +107,7 @@ class FarmPower(FlorisInterface):
 
     def turbine_init(self, turbine: str | list | None):
         if turbine is not None:
-            assert isinstance(turbine, str or list)
+            assert isinstance(turbine, (str, list))
             turbine = [turbine] if isinstance(turbine, str) else turbine
             if len(turbine) not in (1, self.turbine_num):
                 raise ValueError(
@@ -115,29 +119,42 @@ class FarmPower(FlorisInterface):
         return self.floris.farm.turbine_type
 
     def wind_init(self, wind: dict | None):
-        self.reinitialize(**wind)
+        if (wind is None) or (isinstance(wind, dict) | len(wind) == 0):
+            pass
+        elif isinstance(wind, dict) and len(wind) > 0:
+            # assert set(wind.keys()).issubset(set(self.required_strings))
+            self.reinitialize(**wind)
+        else:
+            raise ValueError('Wind input is not valid')
         return self.floris.flow_field.as_dict()
 
-    def wind_direction_array(self,
+    def wind_condition_array(self,
                              direction: int | float | list[int] | list[float] | NDArrayFloat,
-                             sector: int | float | None,
+                             speed: float | list[float] | NDArrayFloat,
+                             sector: int | float | None = None,
                              interval: int | float = 1.,):
-        if isinstance(direction, int or float):
-            if isinstance(sector, int or float):
-                return np.arange(direction - sector, direction + sector + interval, interval)
+        if isinstance(direction, (int, float)):
+            if isinstance(sector, (int, float)):
+                wd = np.arange(direction - sector, direction + sector + interval, interval)
             elif isinstance(sector, None):
-                return np.array([direction])
+                wd = np.array([direction])
             else:
                 raise ValueError("sector must be either None or a number")
-        elif isinstance(direction, list or NDArrayFloat):
+        elif isinstance(direction, (list, np.ndarray)):
+            # When under a range of wind direction, sector is ignored.
             assert len(list(direction)) == 2, "The length of direction list must be 2!"
-            return np.arange(list(direction)[0], list(direction)[1] + interval, interval)
+            wd = np.arange(list(direction)[0], list(direction)[1] + interval, interval)
         else:
             raise ValueError("Wrong type of direction!")
+        if isinstance(speed, (float, list, np.ndarray)):
+            ws = np.array([speed]) if isinstance(speed, float) else np.array(speed)
+        else:
+            raise ValueError("Wrong type of speed!")
+        return {'wind_directions': wd, 'wind_speeds': ws}
 
     def wake_calculation(self, yaw_angles: NDArrayFloat | list[float] | None = None,
-                         wake: dict | None = None, layout: str | None = None,
-                         turbine: str | list | None = None, wind : dict | None = None,):
+                         layout: str | None = None, turbine: str | list | None = None,
+                         wind : dict | None = None, wake: dict | None = None,):
         self.calculation_flag = self.farm_init(layout, turbine, wind, wake)
         self.calculate_wake(yaw_angles=yaw_angles)
         self.calculation_flag = True
@@ -147,33 +164,37 @@ class FarmPower(FlorisInterface):
         if not self.calculation_flag:
             self.wake_calculation()
         if mean:
-            return np.round(np.mean(self.get_turbine_powers()[:, 0, :], axis=0) * 1e-6, 4)
+            return np.round(np.mean(self.get_turbine_powers(), axis=1) * 1e-6, 4)
         else:
-            return np.round(self.get_turbine_powers()[:, 0, :] * 1e-6, 4)
+            return np.round(self.get_turbine_powers() * 1e-6, 4)
 
     def farm_power(self, mean: bool = True):
         # Power unit = Megawatts
         return np.sum(self.turbine_power(mean=mean), axis=-1)
 
-    @classmethod
-    def paper_load(self, paper: str):
-        return import_string(f'floris.utils.tools.paper_data:{paper}')
+    def baseline(self, params_dict: dict | str | Path, **kwargs):
+        config, _ = self.wake_params_reader(params_dict, **kwargs)
+        paper_name = config['paper']
+        paper = import_string(f'floris.utils.tools.paper_data:{paper_name}')
+        self.baseline_data = paper.baseline(layout=self.floris.name,
+                                            fig_id=config['fig_id'],
+                                            direction=config['direction'],
+                                            turbine=config['turbine_id'],
+                                            sector=config['sector'],
+                                            **kwargs)
+        return self.baseline_data
 
-    def evaluation(self,
-                   params_dict: dict | str | Path = None,
-                   **kwargs):
-        params_dict = OrderedDict(self.wake_params_reader(params_dict))
-        config, wake = params_dict.pop('config', None), copy.deepcopy(params_dict)
-        assert config.get('layout', None) == self.floris.name, \
-            f"The layout name {config.get('layout', None)} of " + \
-            f"config file does not match the name of the farm {self.floris.name}"
-        self.baseline_data = self.paper_load(config['paper']).baseline(
-            layout=self.floris.name, fig_id=config['fig_id'], direction=config['direction'],
-            turbine=config['turbine_id'], sector=config['sector'], **kwargs)
-        print(self.baseline_data[0], self.baseline_data[1])
+    def evaluation(self, params_dict: dict | str | Path, **kwargs):
+        assert params_dict is not None, 'Params_dict must be provided!'
+        config, wake = self.wake_params_reader(params_dict, **kwargs)
         case_name = list(wake.keys())
         print(case_name)
-        wind_direction, wind_sector = config['direction'], config['sector']
+        self.case_data['config'] = copy.deepcopy(config)
+        if config.get('turbine_id', None):
+            baseline_data = self.baseline(params_dict, **kwargs)
+            wind_direction, wind_sector = baseline_data[0][0], None
+        else:
+            wind_direction, wind_sector = config['direction'], config['sector']
         wind_speed = config.get('inflow', None) or self.origin_floris.flow_field.wind_speeds
         wind_turbine = config.get('turbine_type', None) or self.origin_floris.farm.turbine_type
         for i, (case, wake_param) in enumerate(wake.items()):
@@ -183,52 +204,61 @@ class FarmPower(FlorisInterface):
                 wind_sector = wake_param.pop('sector')
             if wake_param.get('inflow', None):
                 wind_speed = wake_param.pop('inflow')
-            direction_array = self.wind_direction_array(wind_direction, wind_sector)
-            wind_condition = {'wind_directions': direction_array, 'wind_speeds': wind_speed}
+            assert set(wake_param.keys()).issubset(set(self.required_strings))
+            wind_condition = self.wind_condition_array(wind_direction, wind_speed, wind_sector)
             self.wake_calculation(turbine=wind_turbine, wind=wind_condition, wake=wake_param)
-            self.case_data[case] = self.turbine_power()
-        print(self.case_data['Jensen'].shape)
-        return self.case_data, self.baseline_data
+            self.case_data[case] = {**wind_condition, **{'power': self.turbine_power()}}
+        # print(self.case_data['Jensen']['power'].shape)
+        return self.case_data
 
-        
+    def visualization(self, params_dict: dict | str | Path =None, **kwargs):
+        if params_dict is not None:
+            case_data, baseline_data = self.evaluation(params_dict, **kwargs), \
+                self.baseline(params_dict, **kwargs)
+        else:
+            assert self.case_data and self.baseline_data, \
+                'Evaluation data must be calculated first!'
+            case_data, baseline_data = self.case_data, self.baseline_data
+        plot_name = case_data['config']['paper'] + '_visual'
+        eval_plot = import_string(f'floris.utils.visualization.evaluation:{plot_name}')
+        eval_plot.show(eval_data=case_data, baseline_data=baseline_data, **kwargs)
 
-    def visualization(self, case_data, baseline_data):
-        turbine_data, power_data = baseline_data[0], baseline_data[1]
-        # array_power = veval.turbine_array_power(ref_inds, self.turbine_power[None, :])
-        # veval.array_power_plot(array_power, labels=['270', ], ref=ref_data)
-        plt.show()
-
-    def velocity_plot(self, ax=None):
-        H = self.fi.floris.farm.turbines[0].hub_height
-        D = self.fi.floris.farm.turbine_map.turbines[0].rotor_diameter
-        hor_plane = self.fi.get_hor_plane(height=H,
-                                          x_resolution=500,
-                                          y_resolution=500,)
-        if ax is None:
-            fig, ax = plt.subplots(figsize=(10, 8), dpi=150)
-        # wfct.visualization.visualize_cut_plane(hor_plane, ax=ax)
-        # wfct.visualization.plot_turbines(ax, self.fi.layout_x, self.fi.layout_y,
-        #                                  self.fi.get_yaw_angles(), D)
-        # plt.savefig("images/hr1_270.png", format='png', dpi=200, bbox_inches='tight')
+    def velocity_plot(self,
+                      layout: str | None = None, turbine: str | list | None = None,
+                      wind : dict | None = None, wake: dict | None = None, ):
+        self.farm_init(layout, turbine, wind, wake)
+        plot_height, rotor_diameter = self.floris.flow_field.reference_wind_height, \
+            self.floris.farm.rotor_diameters[0, 0, 0]
+        fig, ax = plt.subplots(figsize=(10, 8), dpi=120)
+        horizontal_plane = self.calculate_horizontal_plane(
+            height=plot_height, x_resolution=300, y_resolution=300,)
+        visualize_cut_plane(horizontal_plane, ax=ax, title=self.layout['name'],
+                            minSpeed=None, maxSpeed=None, cmap="coolwarm",
+                            levels=None, color_bar=False,)
+        # plt.savefig("../../outputs/farm.png", format='png', dpi=200, bbox_inches='tight')
         plt.show()
 
     def turbulence_plot(self, ):
         pass
 
-    @classmethod
-    def wake_params_output(cls, params_dict, output_path):
+    def wake_params_output(self, params_dict, output_path):
         with open(output_path, "w+") as f:
             yaml.dump(params_dict, f, sort_keys=False, indent=2,
                       default_flow_style=False)
 
-    @classmethod
-    def wake_params_reader(cls, params_dict: dict | str | Path,):
+    def wake_params_reader(self, params_dict: dict | str | Path,):
         if isinstance(params_dict, dict):
-            return copy.deepcopy(params_dict)
-        if isinstance(params_dict, str or Path):
-            return load_yaml(params_dict + '.yaml')
+            wake_config = copy.deepcopy(params_dict)
+        if isinstance(params_dict, (str, Path)):
+            wake_config = load_yaml(params_dict + '.yaml')
         else:
             raise ValueError("Invalid import wake parameters YAML!")
+        wake_config = OrderedDict(wake_config)
+        config, wake = wake_config.pop('config', None), wake_config
+        assert config.get('layout', None) == self.floris.name, \
+            f"The layout name {config.get('layout', None)} of " + \
+            f"config file does not match the name of the farm {self.floris.name}"
+        return config, wake
 
 
 
@@ -236,9 +266,12 @@ if __name__ == "__main__":
     wind = {'wind_directions': [270.0], 'wind_speeds': [8.0]}
     LP = FarmPower('Lillgrund', wind=wind)
     # print(LP.floris.wake)
-    LP.evaluation(params_dict='../../inputs/wake_params',)
+    # LP.evaluation(params_dict='../../inputs/wake_params',)
     # LP.evaluation(paper='WP_2015', params_dict='../../inputs/wake_params',
     #               fig_id='Fig_6', direction=270, sector=[1, 5])
+    LP.visualization(params_dict='../../inputs/wake_params',)
+    # LP.velocity_plot(wind={'wind_directions': [42.], 'wind_speeds': [8.]},)
+
 
     # wake_params = {"config": {"paper": "AV_2018",
     #                           "layout": "Lillgrund",

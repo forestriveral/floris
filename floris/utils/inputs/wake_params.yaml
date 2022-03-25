@@ -1,9 +1,9 @@
 config:
   paper: AV_2018
   layout: Lillgrund
-  fig_id: Fig_4_6
+  fig_id: Fig_10_14
   direction: 42
-  turbine_id: null
+  turbine_id: 9
   sector: 10
 Jensen:
   velocity_model: jensen
@@ -18,4 +18,4 @@ Jensen:
 Gauss:
   velocity_model: jensen
   deflection_model: gauss
-  turbine_type: iea_10MW
+  turbine_type: nrel_5MW

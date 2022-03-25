@@ -108,7 +108,7 @@ class AV_2018(object):
                             339.: [65, 64, 63, 62, 61],
                             341.: [30, 29, 28, 27, 26, 25, 24, 23, 22, 21]}, }
 
-    turbine_sector = {"Lillgrund": {25: [25, 55], 9: [65, 80], 18: [85, 100],
+    turbine_sector = {"Lillgrund": {25: [25, 55], 9: [65, 82], 18: [85, 100],
                                     17: [100, 140], 28: [165, 190], 22: [210, 235],
                                     27: [245, 265], 34: [265, 280], 39: [280, 315],
                                     22: [25, 55], 45: [65, 85], 44: [85, 100],
@@ -153,7 +153,7 @@ class AV_2018(object):
         direction_range = cls.turbine_sector[layout_full][turbine]
         data_file = f"{baseline_data_dir}/AV_2018/{layout_full}/{layout_short}_t_{turbine}"
         turbine_power = np.around(np.loadtxt(f"{data_file}.txt"), 4)
-        return np.array(direction_range[None, :]), turbine_power
+        return np.array(direction_range)[None, :], turbine_power
 
     @staticmethod
     def combined_data_load():
