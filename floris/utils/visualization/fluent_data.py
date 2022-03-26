@@ -301,7 +301,7 @@ def vertical_turbulence_profile_show(fname, D=0.15, H=0.125, vel=2.2):
                edgecolor='None', frameon=False, labelspacing=0.4, bbox_to_anchor=(0.3, 1.15),
                bbox_transform=ax1.transAxes, ncol=3, handletextpad=0.5)
     plt.subplots_adjust(wspace=0., hspace=0.25)
-    plt.savefig(f"../outputs/vpt.png", format='png', dpi=300, bbox_inches='tight')
+    # plt.savefig(f"../outputs/vpt.png", format='png', dpi=300, bbox_inches='tight')
     plt.show()
 
 
@@ -521,11 +521,11 @@ def scale_func(seqs, a, b):
 
 
 if __name__ == "__main__":
-    vertical_velocity_profile_plot('turbine_e0_vp3.dat')
+    # vertical_velocity_profile_plot('turbine_e0_vp3.dat')
     # vertical_turbulence_profile_plot('turbine_e0_vtke0.dat')
 
-    # vertical_velocity_profile_show('turbine_e0_vp4.dat')
-    # vertical_turbulence_profile_show('turbine_e0_vtke1.dat')
+    vertical_velocity_profile_show('turbine_e0_vp4.dat')
+    vertical_turbulence_profile_show('turbine_e0_vtke1.dat')
 
     # profile_check()
     # tip_hub_loss()
