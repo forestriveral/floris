@@ -8,7 +8,7 @@ from matplotlib.ticker import MultipleLocator, IndexLocator, LinearLocator
 from floris.utils.visualization import property as ppt
 
 
-data_dir = "./Ishihara_nonyawed"
+data_dir = "../data/others/Ishihara_nonyawed/"
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
