@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from floris.utils.visualization import property as ppt
+from floris.utils.visual import property as ppt
 
 
 

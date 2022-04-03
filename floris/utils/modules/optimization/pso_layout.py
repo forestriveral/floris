@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from floris.utils.tools import opt_ops as optops
 from floris.utils.tools import farm_config as fconfig
 from floris.utils.tools.skopt_pso import PSO as skpso
-from floris.utils.visualization import wflo_opt as vwopt
+from floris.utils.visual import wflo_opt as vwopt
 from floris.utils.modules.optimization import wflo_layout as wflayout
 
 

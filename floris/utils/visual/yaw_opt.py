@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from floris.tools import FlorisInterface
-from floris.utils.visualization import property as ppt
+from floris.utils.visual import property as ppt
 from floris.utils.modules.control.yaw_simulator import YawSimulator as YS
 
 

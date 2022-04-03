@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from floris.utils.visualization.wflo_opt import wf_layout_plot
+from floris.utils.visual.wflo_opt import wf_layout_plot
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 #                               WIND_FARMS                                     #

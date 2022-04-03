@@ -1,3 +1,4 @@
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate
@@ -6,7 +7,7 @@ import matplotlib.patches as mpatches
 from matplotlib.animation import FuncAnimation
 from matplotlib.ticker import MultipleLocator
 
-import floris.utils.visualization.property as ppt
+import floris.utils.visual.property as ppt
 
 
 def yawed_turbine_power():

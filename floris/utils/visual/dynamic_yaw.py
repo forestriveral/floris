@@ -5,7 +5,7 @@ from matplotlib.ticker import MultipleLocator
 
 from floris.tools import FlorisInterface
 from floris.utils.modules.control.yaw_simulator import YawSimulator
-from floris.utils.visualization import property as ppt
+from floris.utils.visual import property as ppt
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #

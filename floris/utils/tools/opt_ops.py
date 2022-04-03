@@ -8,7 +8,7 @@ from sklearn.metrics.pairwise import \
     euclidean_distances
 
 from floris.utils.tools import farm_config as fconfig
-from floris.utils.visualization.wind_resource import winds_pdf
+from floris.utils.visual.wind_resource import winds_pdf
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #

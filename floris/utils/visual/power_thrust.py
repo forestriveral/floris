@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from matplotlib.ticker import FuncFormatter
 
-from floris.utils.visualization import property as ppt
+from floris.utils.visual import property as ppt
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 #                                       MAIN                                   #

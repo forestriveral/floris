@@ -5,7 +5,7 @@ import matplotlib.colors as mcolors
 import matplotlib.patches as patches
 from matplotlib.ticker import MultipleLocator, IndexLocator, LinearLocator
 
-from floris.utils.visualization import property as ppt
+from floris.utils.visual import property as ppt
 
 
 data_dir = "../data/others/Lin_yawed"

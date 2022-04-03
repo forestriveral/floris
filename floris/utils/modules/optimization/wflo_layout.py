@@ -7,8 +7,8 @@ import pandas as pd
 
 from floris.utils.tools import eval_ops as eops
 from floris.utils.tools import farm_config as fconfig
-from floris.utils.visualization import wflo_eval as vweval
-from floris.utils.visualization import wflo_opt as vwopt
+from floris.utils.visual import wflo_eval as vweval
+from floris.utils.visual import wflo_opt as vwopt
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 #                                     MAIN                                     #

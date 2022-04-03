@@ -7,8 +7,8 @@ from scipy import signal
 from floris.tools import FlorisInterface
 from floris.tools.optimization.scipy.yaw import YawOptimization
 
-from floris.utils.visualization import property as ppt
-from floris.utils.visualization import yaw_opt as yopt
+from floris.utils.visual import property as ppt
+from floris.utils.visual import yaw_opt as yopt
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 #                                 YAW_EVALUATION                               #

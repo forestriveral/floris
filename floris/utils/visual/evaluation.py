@@ -9,7 +9,7 @@ import matplotlib.colors as mcolors
 from collections import OrderedDict
 from matplotlib.ticker import MultipleLocator
 
-from floris.utils.visualization import property as ppt
+from floris.utils.visual import property as ppt
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
