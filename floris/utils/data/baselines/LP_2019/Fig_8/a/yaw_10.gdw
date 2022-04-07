@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GetDataWorkspace>
+  <version>2.26.0.20</version>
+  <WSversion>10</WSversion>
+  <File>
+    <Name>C:\Users\Li Hang\Documents\Projects\floris\floris\utils\data\baselines\LP_2019\Fig_8\a\yaw_10.jpg</Name>
+    <Width>2334</Width>
+    <Height>926</Height>
+  </File>
+  <Line>
+    <Caption>Line #1</Caption>
+    <LineColor>1,1,1</LineColor>
+    <BkColor>254,254,254</BkColor>
+    <PtColor>220,70,220</PtColor>
+    <LineType>0</LineType>
+    <Points MF="9">1174,3739,4558,4234,9382,5071,12181,5386,14962,5656,17662,5818,20425,5926</Points>
+  </Line>
+  <CurrentLine>0</CurrentLine>
+  <Xmin MF="9">1156,7186,3.000000e+000</Xmin>
+  <Xmax MF="9">20434,7186,1.000000e+001</Xmax>
+  <Ymin MF="9">1156,7177,0.000000e+000</Ymin>
+  <Ymax MF="9">1147,1174,1.000000e+000</Ymax>
+  <XScale>linear</XScale>
+  <YScale>linear</YScale>
+  <Position>-3,-265</Position>
+  <Zoom>
+    <Scale>90.0</Scale>
+  </Zoom>
+  <Digitize>
+    <IgnorePixels>1</IgnorePixels>
+    <LineIDMethod>2</LineIDMethod>
+  </Digitize>
+  <AutoTrace>
+    <TraceDistance>8</TraceDistance>
+    <SmoothLines>1</SmoothLines>
+  </AutoTrace>
+  <DigitizeArea>
+    <LineOrArea>0</LineOrArea>
+    <RotateAngle>0.000000</RotateAngle>
+    <dx>8.000000</dx>
+  </DigitizeArea>
+  <GridSettings>
+    <ShowGrid>0</ShowGrid>
+    <AreaType>0</AreaType>
+    <dx>15.000000</dx>
+    <dy>15.000000</dy>
+  </GridSettings>
+</GetDataWorkspace>
