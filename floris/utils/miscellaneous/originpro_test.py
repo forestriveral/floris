@@ -1,7 +1,10 @@
 import numpy as np
 import pandas as pd
 import originpro as op
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 from sklearn import linear_model
+
 
 def bayesian(vX, vY):
     blr = linear_model.BayesianRidge(tol=1e-6, fit_intercept=True,
@@ -101,7 +104,32 @@ def sample_test(id=0):
         op.exit()
 
 
+def double_gaussian():
+
+    def test_func(r, *args):
+        a, b, sigma = args[0], args[1], args[2]
+        return 1 / (a * r + b) * np.exp(- r**2 / (2 * sigma**2))
+
+    a_list, b_list, simga_list = [0.1, ], [2., ], [1., 2.]
+    colors = list(mcolors.TABLEAU_COLORS.keys())
+    x = np.arange(-10, 10, 0.5)
+
+    fig, ax = plt.subplots(figsize=(8, 6), dpi=120)
+    for i, a_i in enumerate(a_list):
+        for j, b_j in enumerate(b_list):
+            for k, sigma_k in enumerate(simga_list):
+                ind = (i + 1) * (j + 1) * (k + 1)
+                ax.plot(x, test_func(x, a_i, b_j, sigma_k),
+                        c=colors[ind], lw=2., ls='-',
+                        label=f'a={a_i},b={b_j},sigma={sigma_k}')
+    ax.set_xlim([-6., 6.])
+    ax.legend()
+    plt.show()
+
+
+
 if __name__ == "__main__":
     # simple_draw()
-    data_reader_test()
+    # data_reader_test()
     # sample_test(id=0)
+    double_gaussian()
