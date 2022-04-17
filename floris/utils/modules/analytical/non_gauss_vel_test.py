@@ -28,6 +28,7 @@ legend_font = {'family': 'Times New Roman',
 
 
 def Gauss_velocity(vel, turb, x_D, r_D, *args):
+    vel = 10.4 if vel == 10 else vel
     thrust = C_t[vel]
     p1, p2, p3 = args[0], args[1], args[2]
     # p1, p2, p3 = 0.11, 0.23, 0.15
@@ -61,6 +62,7 @@ def Non_Gauss_velocity(vel, turb, x_D, r_D, *args):
 
 def sowfa_load(inflow, distance):
     vel, turb, yaw = int(inflow[0]), int(inflow[1]), int(inflow[2])
+    vel = 10.4 if vel == 10 else vel
     yaw = f"yaw{yaw}" if yaw >= 0 else f"yaw({yaw})"
     path = f"{data_path}/{vel}ms/{vel}-{turb}%-{yaw}"
     print('Path: ', path)
@@ -119,7 +121,7 @@ def wake_plot(inflow, ft=True, gauss=True, nongauss=True, ax=None):
                bbox_transform=ax1.transAxes, ncol=len(labels), handletextpad=0.5)
     fig.suptitle(title, position=(0.5, 0.02), va='bottom', ha='center', fontproperties=label_font)
     plt.subplots_adjust(wspace=0.15, hspace=0.15)
-
+    plt.savefig(f"../../outputs/nongauss_test.png", format='png', dpi=300, bbox_inches='tight')
     plt.show()
 
 
