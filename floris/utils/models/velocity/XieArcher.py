@@ -5,11 +5,6 @@ from floris.utils.tools import eval_ops as vops
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
-#                                 MISCELLANEOUS                                #
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
-
-
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 #                                     MAIN                                     #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 
@@ -41,7 +36,7 @@ class XieArcherWake(object):
         self.I_a = I_a
         self.epsilon = 0.2 * np.sqrt(
             (1. + np.sqrt(1 - self.C_thrust)) / (2. * np.sqrt(1 - self.C_thrust)))
-        
+
         self.T_m = None if T_m is None else vops.find_and_load_model(T_m, "tim")
         self.I_wake = None if T_m is None else I_w
         # self.k_star = 0.033 if T_m is None else 0.3837 * I_w + 0.003678
@@ -66,11 +61,11 @@ class XieArcherWake(object):
         v_deficit = (1. - np.sqrt(1. - (self.C_thrust / (8 * sigma_y_Dr * sigma_z_Dr)))) * \
             np.exp(- (((z - self.z_hub)**2) / (2 * (sigma_z_Dr * self.d_rotor)**2)) - (((y**2) / (2 * (sigma_y_Dr * self.d_rotor)**2))))
         return self.v_inflow * (1 - v_deficit)
-    
+
     @staticmethod
     def wake_intersection(d_spanwise, y_wake, z_wake, down_d_rotor):
         return vops.wake_overlap_ellipse(d_spanwise, y_wake, z_wake, down_d_rotor)
-    
+
     def wake_loss(self, down_loc, down_d_rotor, down_z_hub=None, eq=None):
         assert self.ref_loc[1] >= down_loc[1], "Reference WT must be upstream downstream WT!"
         d_streamwise,  d_spanwise = \
@@ -93,10 +88,17 @@ class XieArcherWake(object):
             return integral_velocity / (0.25 * np.pi * down_d_rotor**2), I_add * intersect_ratio
 
 
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+#                                 MISCELLANEOUS                                #
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+
+
+
+
 if __name__ == "__main__":
     m = 20.
     n = 0.
-    
+
     test = XieArcherWake(np.array([0., 80. * m]), 8, 0.8, 80, 70)
     std_y = test.wake_sigma_Dr(0.025, 80. * m) * 80
     std_z = test.wake_sigma_Dr(0.0175, 80. * m) * 80

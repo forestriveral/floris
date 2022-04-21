@@ -72,24 +72,22 @@ class HornsRev1(object):
         turbine_deficit[0, -2], turbine_deficit[0, -1] = 0., float(config["inflow"])
         turbine_turb[0, -2], turbine_turb[0, -1] = 0., config["turb"]
         wake_model = self.model_init(config["wm"], model="wm")
-        spos_model = self.model_init(config["wsm"], model="wsm")
+        comb_model = self.model_init(config["wsm"], model="wsm")
         turb_model = self.model_init(config["tim"], model="tim")
         for i, t in enumerate(wt_index):
-            wake = wake_model(wt_loc[t, :], self.turbine_thrust(turbine_deficit[i, -1]),
-                              self.turbine[t]["D_r"], self.turbine[t]["z_hub"],
-                              I_a=config["turb"], T_m=turb_model, I_w=turbine_turb[i, -1],)
             if i < len(wt_index) - 1:
+                wake = wake_model(wt_loc[t, :], self.turbine_thrust(turbine_deficit[i, -1]),
+                                  self.turbine[t]["D_r"], self.turbine[t]["z_hub"],
+                                  I_a=config["turb"], T_m=turb_model, I_w=turbine_turb[i, -1],)
                 for j, wt in enumerate(wt_index[i+1:]):
                     deficit, turbulence = wake.wake_loss(wt_loc[wt, :], self.turbine[wt]["D_r"])
                     turbine_deficit[i, i + j + 1], turbine_turb[i, i + j + 1] = deficit, turbulence
-                total_deficit = spos_model(turbine_deficit, i + 1, inflow=float(config["inflow"]))
+                total_deficit = comb_model(turbine_deficit, i + 1, inflow=float(config["inflow"]))
                 turbine_turb[i + 1, -2] = np.max(turbine_turb[:i + 1, i + 1])
                 turbine_turb[i + 1, -1] = np.sqrt(
                     np.max(turbine_turb[:i + 1, i + 1])**2 + config["turb"]**2)
-                turbine_deficit[i + 1, -2] = total_deficit
                 turbine_deficit[i + 1, -1] = float(config["inflow"]) * (1 - total_deficit)
-            else:
-                break
+                turbine_deficit[i + 1, -2] = total_deficit
         return self.turbine_power(eops.wt_power_reorder(wt_index, turbine_deficit[:, -1]))
 
     def centered_power(self, config):

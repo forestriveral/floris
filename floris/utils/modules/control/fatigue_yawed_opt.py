@@ -4,13 +4,15 @@ import matplotlib.pyplot as plt
 import geatpy as ea
 from scipy import integrate
 
-
+from floris.utils.tools import eval_ops as eops
+from floris.utils.tools import farm_config as fconfig
+from floris.utils.modules.optimization.wflo_layout import LayoutPower
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 #                                     MAIN                                     #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 
-class Windfarm(object):
+class WindFarm(object):
     @classmethod
     def layout(cls):
         c_n, r_n = 8, 10
@@ -78,13 +80,13 @@ class Windfarm(object):
 
 class YawedLayoutPower(object):#计算风场产能
 
-    default_config = {"theta": 0.,
+    default_config = {"theta": 270.,
                       "inflow": 8.0,
                       "turb": 0.077,
                       "param": "horns",
-                      "wm": "Bastankhah",
-                      "wsm": "SumSquares",
-                      "tim": "Frandsen", }
+                      "velocity": "Bastankhah",
+                      "combination": "SumSquares",
+                      "turbulence": "Frandsen", }
 
     def __init__(self, configs=None, **kwargs):
         configs = configs or self.default_config
@@ -96,9 +98,9 @@ class YawedLayoutPower(object):#计算风场产能
     def initial(self, layout, **kwargs):
         self.params = self.config["param"]
         self.turb = self.config["turb"]
-        self.wm = self.models("wm")
-        self.wsm = self.models("wsm")
-        self.tim = self.models("tim")
+        self.velocity = self.models("velocity")
+        self.combination = self.models("combination")
+        self.turbulence = self.models("turbulence")
         self.layout = layout
         self.wtnum = layout.shape[0]
         self.yawed = kwargs.get("yawed",
@@ -106,21 +108,21 @@ class YawedLayoutPower(object):#计算风场产能
         self.param = self.params_uniform(self.wtnum)
 
     def models(self, model):
-        default_model = {"wm":BastankhahWake,
-                         "wsm":Sum_Squares,
-                         "tim":Frandsen,}
+        default_model = {"velocity":BastankhahWake,
+                         "combination":Sum_Squares,
+                         "turbulence":Frandsen,}
         return default_model[model]
 
     def params_uniform(self, num):
-        params = Windfarm.params().values
-        cols = Windfarm.params().columns
+        params = WindFarm.params().values
+        cols = WindFarm.params().columns
         return pd.DataFrame(np.repeat(params, num, axis=0), columns=cols)
 
     def yawed_power(self, layouts, yaweds, configs=None, **kwargs):
         if configs is not None:
             self.config_reset(configs, **kwargs)
         self.initial(layouts, yawed=yaweds)
-        powers = np.vectorize(Windfarm.pow_curve)(self.single_yawed)
+        powers = np.vectorize(WindFarm.pow_curve)(self.single_yawed)
         return powers
 
     @property
@@ -128,36 +130,30 @@ class YawedLayoutPower(object):#计算风场产能
         wt_loc = coordinate_transform(self.layout, self.config['theta'])
         wt_index = np.argsort(wt_loc[:, 1])[::-1]
         assert len(wt_index) == wt_loc.shape[0]
-        deficits = np.zeros(len(wt_index))
-        deficit_tab = np.full((len(wt_index), len(wt_index) + 2), None)
-        turbulence_tab = np.full((len(wt_index), len(wt_index) + 2), None)
+        turbine_deficit = np.full((len(wt_index), len(wt_index) + 2), None)
+        turbine_turb = np.full((len(wt_index), len(wt_index) + 2), None)
+        turbine_deficit[0, -2], turbine_deficit[0, -1] = 0., float(config["inflow"])
+        turbine_turb[0, -2], turbine_turb[0, -1] = 0., config["turb"]
         for i, t in enumerate(wt_index):
-            if i == 0:
-                deficit_tab[0, -2], deficit_tab[0, -1] = 0., float(self.config["inflow"])
-                if self.config["tim"] is not None:
-                    turbulence_tab[0, -2], turbulence_tab[0, -1] = 0., self.config["turb"]
             ct_t, ytheta = 4 * self.yawed[t, 1] * (1 - self.yawed[t, 1]), self.yawed[t, 0]
-            wake = self.wm(wt_loc[t, :], ct_t, self.param.iloc[t]["D_r"], self.param.iloc[t]["z_hub"],
-                           T_m=self.tim, I_w=turbulence_tab[i, -1], I_a=self.config["turb"],
-                           ytheta=ytheta)
             if i < len(wt_index) - 1:
+                wake = self.velocity(wt_loc[t, :], ct_t, self.param.iloc[t]["D_r"],
+                                     self.param.iloc[t]["z_hub"], T_m=self.turbulence,
+                                     I_w=turbine_turb[i, -1], I_a=self.config["turb"],
+                                     ytheta=ytheta)
                 for j, wt in enumerate(wt_index[i+1:]):
-                    deficit_tab[i, i + j + 1], turbulence_tab[i, i + j + 1] = \
+                    turbine_deficit[i, i + j + 1], turbine_turb[i, i + j + 1] = \
                         wake.wake_loss(wt_loc[wt, :], self.param.iloc[wt]["D_r"])
-                total_deficit = self.wsm(deficit_tab[:, :], i + 1,
-                                         inflow=float(self.config["inflow"]))
-                if self.config["tim"] is not None:
-                    turbulence_tab[i + 1, -2] = np.max(turbulence_tab[:i+1, i+1])
-                    turbulence_tab[i + 1, -1] = np.sqrt(
-                        np.max(turbulence_tab[:i+1, i+1])**2 + self.config["turb"]**2)
-                yawed_power_reduction = np.cos(ytheta * np.pi/180**(1.88 / 3.0))
-                deficit_tab[i + 1, -2] = total_deficit
-                deficit_tab[i + 1, -1] = float(self.config["inflow"]) * (1 - total_deficit) *\
-                    yawed_power_reduction
-            else:
-                break
-            deficits[:] = powers_recorder(wt_index, deficit_tab[:, -1])
-        return deficits
+                total_deficit = self.combination(turbine_deficit[:, :], i + 1,
+                                                 inflow=float(self.config["inflow"]))
+                turbine_turb[i + 1, -2] = np.max(turbine_turb[:i + 1, i + 1])
+                turbine_turb[i + 1, -1] = np.sqrt(
+                    np.max(turbine_turb[:i + 1, i + 1])**2 + self.config["turb"]**2)
+                turbine_deficit[i + 1, -1] = float(self.config["inflow"]) * (1 - total_deficit)
+                turbine_deficit[i + 1, -2] = total_deficit
+            yawed_power_reduction = np.cos(ytheta * np.pi / 180)**(1.88 / 3.0)
+            turbine_deficit[i, -1] = turbine_deficit[i, -1] * yawed_power_reduction
+        return powers_recorder(wt_index, turbine_deficit[:, -1])
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
@@ -308,24 +304,21 @@ def wake_overlap(d_spanwise, r_wake, down_d_rotor):#尾流叠加模型
         return 0.
 
 
-def yawed_generator(wtnum, num, seed=1234):
+def yawed_generator(num, wtnum, seed=1234):
     induction_range = (0.031, 0.276)#诱导因子范围
     # thrust_range = (0.12, 0.8)#推力系数范围
     yawed_range = (-20, 20)#偏航角范围
     np.random.seed(seed)#生成一组随机数
-    print(wtnum,num)
     data = np.zeros((num * wtnum, 2))#生成两列wtnum * num行的空矩阵
     yawed_data = np.random.randint(
         yawed_range[0], yawed_range[1], wtnum * num)#在(-20, 20)范围内生成wtnum * num个随机整数
     induction_data = np.random.uniform(
         induction_range[0], induction_range[1], wtnum * num)#在[0.031, 0.276)范围内生成wtnum * num个随机数
     data[:, 0], data[:, 1] = yawed_data, induction_data
-    print(data)
-    print(data.reshape((num, wtnum, 2)))
     return data.reshape((num, wtnum, 2))
 
 
-def layout_generator(col=1, row=2, space=5, D=80.):
+def layout_generator(col=3, row=1, space=5, D=80.):
     layouts = [
         [i * space * D, j * space * D] for i in range(col) for j in range(row)]
     return np.array(layouts)
@@ -339,7 +332,7 @@ def layout_generator(col=1, row=2, space=5, D=80.):
 class FatigueYawedLayoutPower(YawedLayoutPower):  # 计算风场疲劳分布
     def __init__(self, configs=None, P_rate=5, T_life=6.3072e8,
                  C_rep=0.5, Lambda=0.5, **kwargs):
-        super().__init__(self, configs=None, **kwargs)
+        super().__init__(configs=configs, **kwargs)
         self.P_rate = P_rate
         self.T_life = T_life
         self.C_rep = C_rep
@@ -351,100 +344,221 @@ class FatigueYawedLayoutPower(YawedLayoutPower):  # 计算风场疲劳分布
     def turbine_fatigue(self, power, t=3.1536e7):
         fatigue = (1 + self.Lambda) * (power * t) / \
             self.P_rate * self.T_life * (1 + self.C_rep)
-        return np.std(fatigue)
+        return np.std(fatigue) / 1e15   # rescaling for large number
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
-#                  Multi-objective optimalization                              #
+#                     Single-objective optimization                            #
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+
+
+class YawedPowerProblem(ea.Problem):
+    def __init__(self, configs, layout):
+        name = 'YawedPower'  # 初始化name（函数名称，可以随意设置）
+        self.configs = configs
+        self.layout = layout
+        self.Dim = 2 * self.configs["num"]  # 初始化Dim（决策变量维数）
+        M = 1  # 初始化M（目标维数）
+        maxormins = [-1] * M  # 初始化目标最小最大化标记列表，1:min；-1:max
+        varTypes = [0] * self.Dim # 初始化决策变量类型，0:连续；1:离散
+
+        lb = [-30, 0.031] * self.configs["num"]
+        ub = [30, 0.276] * self.configs["num"]
+        lbin = [0] * self.Dim  # 决策变量下边界
+        ubin = [0] * self.Dim  # 决策变量上边界
+        # 调用父类构造方法完成实例化
+        ea.Problem.__init__(self, name, M, maxormins, self.Dim,
+                            varTypes, lb, ub, lbin, ubin)
+        self.calculator = YawedLayoutPower(self.configs)
+
+    def aimFunc(self, pop):  # 目标函数，pop为传入的种群对象
+        Vars = pop.Phen.reshape(pop.Phen.shape[0], self.configs["num"], 2)  # 得到决策变量矩阵
+        pop.ObjV = np.zeros((Vars.shape[0], self.M))
+        for i in range(Vars.shape[0]):
+            powers = self.calculator.yawed_power(self.layout, Vars[i, :, :])
+            pop.ObjV[i, :] = np.sum(powers)
+
+
+class YawedOpt(object):
+    def __init__(self, config, layout):
+        self.config = config
+        self.problem = YawedPowerProblem(config, layout) # 实例化问题对象
+        """==============================种群设置==========================="""
+        self.Encoding = 'RI' # 编码方式
+        self.NIND = config["pop"] # 种群规模
+        self.MAXGEN = config["maxg"]
+
+        self.Field = ea.crtfld(self.Encoding, self.problem.varTypes, self.problem.ranges,
+                               self.problem.borders) # 创建区域描述器
+        self.population = ea.Population(self.Encoding, self.Field, self.NIND) # 实例化种群对象（此时种群还没被真正初始化，仅仅是生成一个种群对象）
+
+    def solution(self, ):
+    # 单目标带约束
+        """===========================算法参数设置=========================="""
+        # myAlgorithm = ea.soea_SEGA_templet(self.problem, self.population) # 实例化一个算法模板对象
+        # myAlgorithm.mutOper.Pm = 0.5  # 变异概率
+        myAlgorithm = ea.soea_DE_rand_1_bin_templet(self.problem, self.population)  # 实例化一个算法模板对象
+        myAlgorithm.mutOper.F = 0.6 # 差分进化中的参数F
+        myAlgorithm.recOper.XOVR = 0.5 # 设置交叉概率
+        myAlgorithm.trappedValue = 1e-3  # “进化停滞”判断阈值
+        myAlgorithm.maxTrappedCount = 50  # 进化停滞计数器最大上限值，如果连续maxTrappedCount代被判定进化陷入停滞，则终止进化
+
+        myAlgorithm.MAXGEN = self.MAXGEN # 最大进化代数
+        myAlgorithm.logTras = 1 #设置每隔多少代记录日志，若设置成0则表示不记录日志
+        myAlgorithm.verbose = True # 设置是否打印输出日志信息
+        myAlgorithm.drawing = 1
+        # 设置绘图方式（0:不绘图；1:绘制结果图；2:绘制目标空间过程动画； 3:绘制决策空间过程动画）
+        """==========================调用算法模板进行种群进化==============="""
+        [BestIndi, self.population] = myAlgorithm.run() # 执行算法模板，得到最优个体以及最后一代种群
+        BestIndi.save("solution/Results") # 把最优个体的信息保存到文件中
+        """=================================输出结果======================="""
+        print('Evaluation times:{}'.format(myAlgorithm.evalsNum))
+        print('Elapsed time %s %s' % eops.time_formator(myAlgorithm.passTime))
+        if BestIndi.sizes != 0:
+            yawed_data = pd.read_csv(
+                f"../solution/Results/Phen.csv",
+                header=None).values.reshape(self.config["num"], 2)
+            print('Optimal Yawed:(Turbine: Yaw/Induction)')
+            for i in range(yawed_data.shape[0]):
+                print(f'   {i+1}: {yawed_data[i, 0]:.1f} / {yawed_data[i, 1]:.3f}')
+            print('Optimal Power:%s' % (BestIndi.ObjV[0][0]))
+        else:
+            print('No feasible solution')
+
+
+def yawed_case_run(N, pop=None, maxg=None):
+    config = {
+        "pop": pop or 20,
+        "maxg": maxg or 50,
+        "num": N,
+        "param": "horns",
+        "inflow": 8.0,
+        "theta": 0.,
+        "sector": 3,
+        "Iam": 0.077,
+        "winds": "horns",
+        "velocity": "Jensen",
+        "combination": "SS",
+        "turbulence": None,
+        "superposition": None,}
+    layout_5, layout_9, layout_25 = eops.yawed_layout_generator()
+    YawedOpt(config, eval(f"layout_{N}")).solution()
+
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+#                    Multi-objective optimization                              #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 
 
 class ZDT1(ea.Problem): # 继承Problem父类
-    default_config = {"theta": 0.,
+
+    default_config = {"theta": 270.,
                       "inflow": 12.0,
                       "turb": 0.077,
                       "param": "horns",
-                      "wm": "Bastankhah",
-                      "wsm": "SumSquares",
-                      "tim": "Frandsen", }
-    def __init__(self, configs=None, **kwargs):
-        configs = configs or self.default_config
-        name = 'ZDT1' # 初始化name（函数名称，可以随意设置）
-        M = 2 # 初始化M（目标维数）
-        maxormins = [1] * M # 初始化maxormins（目标最小最大化标记列表，1：最小化该目标；-1：最大化该目标）
-        Dim = 4 # 初始化Dim（决策变量维数）????2/4?
-        varTypes = [0] * Dim # 初始化varTypes（决策变量的类型，0：实数；1：整数）
-        lb = [-30,0.031] * 2 # 决策变量下界
-        ub = [30,0.276] * 2 # 决策变量上界
-        lbin = [1] * 4 # 决策变量下边界（0表示不包含该变量的下边界，1表示包含）
-        ubin = [1] *4 # 决策变量下边界（0表示不包含该变量的下边界，1表示包含）
+                      "velocity": "Bastankhah",
+                      "combination": "SumSquares",
+                      "turbulence": "Frandsen", }
+
+    def __init__(self, configs=None, layout=None, **kwargs):
+        self.configs = configs or self.default_config
+        self.layout = layout_generator() if layout is None else layout
+        self.wt_num = self.layout.shape[0]
+        name = 'ZDT1'           # 初始化name（函数名称，可以随意设置）
+        M = 2                   # 初始化M（目标维数）
+        maxormins = [1] * M     # 初始化maxormins（目标最小最大化标记列表，1：最小化该目标；-1：最大化该目标
+        # loading the turbine number from layout array or set it to default value (=4)
+        Dim = 2 * self.wt_num   # 初始化Dim（决策变量维数）
+        varTypes = [0] * Dim    # 初始化varTypes（决策变量的类型，0：实数；1：整数）
+        lb = [-30, 0.031] * self.wt_num   # 决策变量下界
+        ub = [30, 0.276] * self.wt_num    # 决策变量上界
+        lbin = [1] * Dim        # 决策变量下边界（0表示不包含该变量的下边界，1表示包含）
+        ubin = [1] * Dim        # 决策变量下边界（0表示不包含该变量的下边界，1表示包含）
+        self.calculator = FatigueYawedLayoutPower(self.configs, **kwargs)
         # 调用父类构造方法完成实例化
-        self.FTLP = FatigueYawedLayoutPower(configs)
         ea.Problem.__init__(self, name, M, maxormins, Dim, varTypes, lb, ub, lbin, ubin)
 
-    def aimFunc(self, pop, wtnum, num): # 目标函数
-        Vars = pop.Phen # 得到决策变量矩阵
-        data = np.zeros((num * wtnum, 2))
-        yawed_data=[Vars[:, 1], Vars[:, 3]]
-        induction_data=[Vars[:, 0],Vars[:, 2]]
-        data[:, 0], data[:, 1] = yawed_data, induction_data
-        print(data)
-        print(data.reshape((num, wtnum, 2)))
-        return data.reshape((num, wtnum, 2))
-        # for i in range(1,13):
-        #     exec('x%s=%d'%(i, Vars[:, i-1])) #循环定义变量
-            # exec('print(a%s)' % i)
+    def aimFunc(self, pop=None):  # 目标函数
+        yawVars = pop.Phen.reshape(pop.Phen.shape[0], -1, 2) if pop is not None \
+            else yawed_generator(40, self.wt_num) # Obtain the decision variables of pop
+        yawObjV = np.zeros((yawVars.shape[0], 2))  # Building the objective variable matrix
+        for i in range(yawVars.shape[0]):
+            powers = self.calculator.turbine_power(self.layout, yawVars[i, :, :])
+            fatigue = self.calculator.turbine_fatigue(powers)
+            yawObjV[i, 0], yawObjV[i, 1] = 1 / np.sum(powers), fatigue
+        if pop is not None:
+            pop.ObjV = yawObjV
+        return yawObjV
 
-        ##两台风机偏航角和诱导因子如何作为变量代入发电量计算模块？？？？变量如何用Yawed_generator代替
-
-        # x5 = Vars[:, 4]
-        # x6 = Vars[:, 5]
-        # x7 = Vars[:, 6]
-        # x8 = Vars[:, 7]
-        # x9 = Vars[:, 8]
-        # x10 = Vars[:, 9]
-        # x11 = Vars[:, 10]
-        # x12 = Vars[:, 11]
-
-        ObjV1 = np.sum(YawedLayoutPower().yawed_power(layout, yawed, config))  #2=row*col两台风机总发电量
-        ObjV2 = FatigueDistribution().fatigue_distribution()##风场疲劳分布
-        pop.ObjV = np.array([ObjV1, ObjV2]).T # 把结果赋值给ObjV
 
 def run_ZDT1():
     """================================实例化问题对象============================="""
-    problem = ZDT1()          # 生成问题对象
+    problem = ZDT1()            # 生成问题对象
     """==================================种群设置================================"""
-    Encoding = 'RI'           # 编码方式
-    NIND = 40                 # 种群规模
+    Encoding = 'RI'              # 编码方式
+    NIND = 50                    # 种群规模
     Field = ea.crtfld(Encoding, problem.varTypes, problem.ranges, problem.borders) # 创建区域描述器
-    population = ea.Population(Encoding, Field, NIND) # 实例化种群对象（此时种群还没被初始化，仅仅是完成种群对象的实例化）
+    population = ea.Population(Encoding, Field, NIND)  # 实例化种群对象（此时种群还没被初始化，仅仅是完成种群对象的实例化）
     """================================算法参数设置==============================="""
-    myAlgorithm = ea.moea_NSGA2_templet(problem, population) # 实例化一个算法模板对象
-    myAlgorithm.MAXGEN = 500  # 最大进化代数
-    myAlgorithm.logTras = 0  # 设置每多少代记录日志，若设置成0则表示不记录日志
+    myAlgorithm = ea.moea_NSGA2_templet(problem, population)  # 实例化一个算法模板对象
+    myAlgorithm.MAXGEN = 50     # 最大进化代数
+    myAlgorithm.logTras = 5      # 设置每多少代记录日志，若设置成0则表示不记录日志
     myAlgorithm.verbose = False  # 设置是否打印输出日志信息
-    myAlgorithm.drawing = 0  # 设置绘图方式（0：不绘图；1：绘制结果图；2：绘制目标空间过程动画；3：绘制决策空间过程动画）
+    myAlgorithm.drawing = 1      # 设置绘图方式（0：不绘图；1：绘制结果图；2：绘制目标空间过程动画；3：绘制决策空间过程动画）
     """==========================调用算法模板进行种群进化=========================
-    调用run执行算法模板，得到帕累托最优解集NDSet以及最后一代种群。NDSet是一个种群类Population的对象。
-    NDSet.ObjV为最优解个体的目标函数值；NDSet.Phen为对应的决策变量值。
+    调用run执行算法模板, 得到帕累托最优解集NDSet以及最后一代种群。NDSet是一个种群类Population的对象。
+    NDSet.ObjV为最优解个体的目标函数值; NDSet.Phen为对应的决策变量值。
     详见Population.py中关于种群类的定义。
     """
-    [NDSet, population] = myAlgorithm.run(layout.shape)  # 执行算法模板，得到非支配种群以及最后一代种群
+    [NDSet, population] = myAlgorithm.run()  # 执行算法模板，得到非支配种群以及最后一代种群
     NDSet.save()  # 把非支配种群的信息保存到文件中
 
 
 if __name__ == "__main__":
 
-    # config = {"theta": 0.,
-    #           "inflow": 10.,
-    #           "turb": 0.077, }
+    config = {"theta": 270.,
+              "inflow": 10.,
+              "turb": 0.077, }
 
     # turbine position: [[x1, y1], [x2, y2], ...]
     layout = layout_generator()
     print(layout)
-    #
-    # # yaw status: [[yaw1, ind1], [yaw2, ind2], ...]
-    yawed = ZDT1().aimFunc(layout.shape[0], 1)[0]
 
-    # run_ZDT1()
+    # # yaw variables: [[yaw1, ind1], [yaw2, ind2], ...]
+    # powers = ZDT1(config, layout).aimFunc()
+    # print('Pop Power:', 1 / powers[:, 0], '\n')
+    # print(f'Pop ObjVal Matrix: Shape = {powers.shape}\n', powers, '\n')
+
+    run_ZDT1()
+
+    # config = {
+    #     "num": 5,
+    #     "param": "horns",
+    #     "inflow": 8.0,
+    #     "theta": 0.,
+    #     "sector": 3,
+    #     "Iam": 0.077,
+    #     "winds": "horns",
+    #     "velocity": "Jensen",
+    #     "combination": "SS",
+    #     "turbulence": None,
+    #     "superposition": None,}
+
+    # layouts = np.array([[800, 3040],
+    #                [800, 2480],
+    #                [800, 1920],
+    #                [800, 1360],
+    #                [800, 800]])
+
+    # inputs = np.array([[-10, 0.276],
+    #                 [10, 0.276],
+    #                 [10, 0.152],
+    #                 [10, 0.276],
+    #                 [10, 0.114]])
+
+    # powers = YawedLayoutPower(config).yawed_data_generation(layouts, inputs)
+    # print(powers)
+
+    # powers = upow.LayoutPower(config).yawed_data("output/21_4_23")
+    # print(powers)
 

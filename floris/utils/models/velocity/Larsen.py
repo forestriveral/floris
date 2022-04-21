@@ -27,8 +27,6 @@ def Larsen_wake(x, r, v_inflow, D_r, C_T, I_a, z_hub):
             (((35 / (2 * np.pi))**(3/10)) * ((3 * c_1**2)**(-1/5))))**2
     print(v_deficit)
     v_wake = v_inflow * (1 - v_deficit)
-    
-
     return D_w, v_deficit, v_wake
 
 
@@ -63,10 +61,18 @@ class LarsenWake(object):
         return self.v_inflow * (1 - self.v_deficit(x, r))
 
 
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+#                            MISCELLANEOUS                                     #
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+
+
+
+
+
 if __name__ == "__main__":
     # test = LarsenWake(8, 80, 0.8, 0.08, 70)
     # print(test.d_wake(500))
     # print(test.v_deficit(500, 150))
     # print(test.v_wake(500, 150))
-    
+
     Larsen_wake(500, 150, 8, 80, 0.8, 0.08, 70)

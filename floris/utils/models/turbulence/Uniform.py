@@ -4,8 +4,12 @@ import matplotlib.pyplot as plt
 from floris.utils.visual import property as ppt
 
 
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+#                                     MAIN                                     #
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 
-def quart(C_t, I_0, x):
+
+def Quart(C_t, I_0, x):
     x_N = 1.
     I_add = 4.8 * (C_t**0.7) * (I_0**0.68) * ((x/x_N)**-0.57)
     I_w = np.sqrt(I_add**2 + I_0**2)
@@ -34,14 +38,14 @@ def Larsen_turb(C_t, I_0, x_D):
     return I_add
 
 
-def tian(C_t, I_0, x_D):
+def Tian(C_t, I_0, x_D):
     K_n = 0.4
     I_add = K_n * C_t / x_D
     # I_w = I_add + I_0
     return I_add
 
 
-def gao(C_t, I_0, x_D):
+def Gao(C_t, I_0, x_D):
     K_n = 0.4
     I_w = (K_n * C_t * (x_D**-0.5) + (I_0**0.5))**2
     return I_w
@@ -54,6 +58,11 @@ def IEC(C_t, I_0, x_D):
     I_add_2 = 1. / (1.5 + 0.8 * x_D * (C_t**(-0.5)))
     # I_w_2 = np.sqrt(I_add_2**2 + I_0**2)
     return I_add_2
+
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+#                            MISCELLANEOUS                                     #
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 
 
 def tim_plot():

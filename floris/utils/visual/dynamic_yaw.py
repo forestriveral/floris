@@ -4,7 +4,8 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.ticker import MultipleLocator
 
 from floris.tools import FlorisInterface
-from floris.utils.modules.control.yaw_simulator import YawSimulator
+from floris.tools import cut_plane
+from floris.utils.modules.control.real_yaw_simulator import YawSimulator
 from floris.utils.visual import property as ppt
 
 
@@ -233,7 +234,7 @@ def plane_plot(fi, wd, ws, yaw):
     fi.floris.farm.set_yaw_angles(yaw_angles=yaw)
     hor_plane = fi.get_hor_plane(x_resolution=600, y_resolution=300,)
     D = fi.floris.farm.turbine_map.turbines[0].rotor_diameter
-    return wfct.cut_plane.rescale_axis(hor_plane, x1_factor=D, x2_factor=D)
+    return cut_plane.rescale_axis(hor_plane, x1_factor=D, x2_factor=D)
 
 
 def turbine_plot(layout_x, layout_y, yaw_angles, D,

@@ -8,78 +8,7 @@ from floris.utils.tools import eval_ops as vops
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
-#                                 MISCELLANEOUS                                #
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
-
-def bast_wake(x_d0, r, k, c):
-    beta = (1. + np.sqrt(1 - c)) / (2. * np.sqrt(1 - c))
-    e = 0.2 * np.sqrt(beta)
-    print(e)
-    o_d0 = k * x_d0 + e
-    A = 1. - np.sqrt(1. - (c / (8 * o_d0**2)))
-    v_deficit = A * np.exp(- (r**2) / (2 * o_d0**2))
-    return v_deficit
-
-
-def wake_plot(wake, x_d0, k, c, r=None, z0=None):
-    if not isinstance(x_d0, list):
-        x_d0 = [x_d0]
-    if z0:
-        k = k_decay_constant(np.array(z0), zh=70)
-        print(k)
-    else:
-        if not isinstance(k, list) or len(k) == 1:
-            k = [ki for ki in range(len(x_d0))]
-    if not r:
-        r = np.arange(-2, 2, 0.01)
-    # print(k)
-    plt.figure(num=1, figsize=(15, 8), dpi=100)
-    colors = list(mcolors.TABLEAU_COLORS.keys())
-
-    for i, (ki, xi) in enumerate(zip(k, x_d0)):
-        # print(x_d0)
-        y = wake(xi, r, ki, c)
-        plt.plot(r, y, color=colors[i], linewidth=1.0,
-                 linestyle="-", label="{}_{}D".format(ki, xi))
-
-    plt.legend()
-    plt.show()
-
-
-def wake_expansion_plot(k, c):
-    beta = (1 + np.sqrt(1 - c)) / 2 * np.sqrt(1 - c)
-    e = 0.2 * np.sqrt(beta)
-    x_d0 = np.arange(0, 15, 1)
-
-    if not isinstance(k, list):
-        k = [k]
-    plt.figure(num=1, figsize=(15, 8), dpi=100)
-    colors = list(mcolors.TABLEAU_COLORS.keys())
-    for i, ki in enumerate(k):
-        # print(x_d0)
-        o_d0 = ki * x_d0 + e
-        plt.plot(x_d0, o_d0, color=colors[i],
-                 linewidth=1.0, linestyle="-",
-                 label="{}".format(ki))
-    plt.legend()
-    plt.show()
-
-
-def k_decay_constant(z0, zh=70):
-    epsilon = 1e-10
-    return 0.5 / np.log((zh / z0) + epsilon)
-
-
-def k_plot():
-    plt.figure(num=1, figsize=(15, 8), dpi=100)
-    z0 = np.arange(0, 1, 0.05)
-    k = k_decay_constant(z0)
-    plt.plot(z0, k)
-    plt.show()
-
-
-# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
-#                                     MAIN                                     #
+#                                      MAIN                                    #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 
 
@@ -143,6 +72,13 @@ class BastankhahWake(object):
             - self.epsilon) / self.k_star
         return r_D_ex, x_D_ex
 
+    def wake_offset(self, ytheta, distance):
+        ytheta, distance = ytheta / 360 * 2 * np.pi, distance / self.d_rotor
+        theta_func = lambda x_D: np.tan(
+            np.cos(ytheta)**2 * np.sin(ytheta) * self.C_thrust * 0.5 * (1 + 0.09 * x_D)**-2)
+        offset = integrate.quad(theta_func, 0, distance)[0] * self.d_rotor
+        return offset
+
     def wake_loss(self, down_loc, down_d_rotor):
         assert self.ref_loc[1] >= down_loc[1], "Reference WT must be upstream downstream WT!"
         d_streamwise,  d_spanwise = \
@@ -174,13 +110,6 @@ class BastankhahWake(object):
             return integral_velocity / (0.25 * np.pi * down_d_rotor**2), I_add * intersect_ratio
         else:
             return 0., 0.
-
-    def wake_offset(self, ytheta, distance):
-        ytheta, distance = ytheta / 360 * 2 * np.pi, distance / self.d_rotor
-        theta_func = lambda x_D: np.tan(
-            np.cos(ytheta)**2 * np.sin(ytheta) * self.C_thrust * 0.5 * (1 + 0.09 * x_D)**-2)
-        offset = integrate.quad(theta_func, 0, distance)[0] * self.d_rotor
-        return offset
 
 
 def BP_data_generator(num=500, test=False):
@@ -290,6 +219,80 @@ class BPWakeGenerator(object):
         # plt.savefig("output/wake_A.png", format='png',
         #             dpi=300, bbox_inches='tight')
         return np.max(rs_D_ex), x_D_ex
+
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+#                            MISCELLANEOUS                                     #
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+
+
+def bast_wake(x_d0, r, k, c):
+    beta = (1. + np.sqrt(1 - c)) / (2. * np.sqrt(1 - c))
+    e = 0.2 * np.sqrt(beta)
+    print(e)
+    o_d0 = k * x_d0 + e
+    A = 1. - np.sqrt(1. - (c / (8 * o_d0**2)))
+    v_deficit = A * np.exp(- (r**2) / (2 * o_d0**2))
+    return v_deficit
+
+
+def wake_plot(wake, x_d0, k, c, r=None, z0=None):
+    if not isinstance(x_d0, list):
+        x_d0 = [x_d0]
+    if z0:
+        k = k_decay_constant(np.array(z0), zh=70)
+        print(k)
+    else:
+        if not isinstance(k, list) or len(k) == 1:
+            k = [ki for ki in range(len(x_d0))]
+    if not r:
+        r = np.arange(-2, 2, 0.01)
+    # print(k)
+    plt.figure(num=1, figsize=(15, 8), dpi=100)
+    colors = list(mcolors.TABLEAU_COLORS.keys())
+
+    for i, (ki, xi) in enumerate(zip(k, x_d0)):
+        # print(x_d0)
+        y = wake(xi, r, ki, c)
+        plt.plot(r, y, color=colors[i], linewidth=1.0,
+                 linestyle="-", label="{}_{}D".format(ki, xi))
+
+    plt.legend()
+    plt.show()
+
+
+def wake_expansion_plot(k, c):
+    beta = (1 + np.sqrt(1 - c)) / 2 * np.sqrt(1 - c)
+    e = 0.2 * np.sqrt(beta)
+    x_d0 = np.arange(0, 15, 1)
+
+    if not isinstance(k, list):
+        k = [k]
+    plt.figure(num=1, figsize=(15, 8), dpi=100)
+    colors = list(mcolors.TABLEAU_COLORS.keys())
+    for i, ki in enumerate(k):
+        # print(x_d0)
+        o_d0 = ki * x_d0 + e
+        plt.plot(x_d0, o_d0, color=colors[i],
+                 linewidth=1.0, linestyle="-",
+                 label="{}".format(ki))
+    plt.legend()
+    plt.show()
+
+
+def k_decay_constant(z0, zh=70):
+    epsilon = 1e-10
+    return 0.5 / np.log((zh / z0) + epsilon)
+
+
+def k_plot():
+    plt.figure(num=1, figsize=(15, 8), dpi=100)
+    z0 = np.arange(0, 1, 0.05)
+    k = k_decay_constant(z0)
+    plt.plot(z0, k)
+    plt.show()
+
+
 
 
 if __name__ == "__main__":

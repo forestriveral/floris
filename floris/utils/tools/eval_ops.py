@@ -118,47 +118,47 @@ def target_power_extract(powers, targets):
 
 
 def wake_model_load(name, model):
-    assert model in ["wm", "wsm", "tim", "cost"], \
+    assert model in ["velocity", "combination", "turbulence", "cost"], \
         "Model type must be specific!"
     if name is None:
         return None
     else:
         from floris.utils.models.velocity import Bastankhah, Frandsen, Ishihara, \
             Jensen, Larsen, XieArcher
-        from floris.utils.models.velocity.superposition import Geometric_Sum, Linear_Sum, \
-            Energy_Balance, Sum_Squares
-        from floris.utils.models.turbulence.added import quart, Crespo, Frandsen_turb, \
-            Larsen_turb, tian, gao, IEC
-        from floris.utils.tools.energy_cost import COE, LCOE
+        from floris.utils.models.combination.VelocityCombination import Geometric_Sum, \
+            Linear_Sum, Energy_Balance, Sum_Squares
+        from floris.utils.models.turbulence.Uniform import Quart, Crespo, Frandsen_turb, \
+            Larsen_turb, Tian, Gao, IEC
+        from floris.utils.models.evaluation.EnergyCost import COE, LCOE
 
-        WakeModels = {'Bastankhah':Bastankhah.BastankhahWake,
-                      'Frandsen':Frandsen.FrandsenWake,
-                      'Ishihara':Ishihara.IshiharaWake,
-                      'Jensen':Jensen.JensenWake,
-                      'Larsen':Larsen.LarsenWake,
-                      'XieArcher':XieArcher.XieArcherWake,}
+        VelocityModels = {'Bastankhah': Bastankhah.BastankhahWake,
+                          'Frandsen': Frandsen.FrandsenWake,
+                          'Ishihara': Ishihara.IshiharaWake,
+                          'Jensen': Jensen.JensenWake,
+                          'Larsen': Larsen.LarsenWake,
+                          'XieArcher': XieArcher.XieArcherWake, }
 
-        SuperpositionModels = {'GS': Geometric_Sum,
-                               'LS': Linear_Sum,
-                               'EB': Energy_Balance,
-                               'SS': Sum_Squares, }
+        CombinationModels = {'GS': Geometric_Sum,
+                             'LS': Linear_Sum,
+                             'EB': Energy_Balance,
+                             'SS': Sum_Squares, }
 
-        TurbModels = {'quart':quart,
-                      'Crespo':Crespo,
-                      'Frandsen':Frandsen_turb,
-                      'Larsen':Larsen_turb,
-                      'tian':tian,
-                      'gao':gao,
-                      'IEC':IEC,
-                      None:None}
+        TurbulenceModels = {'quart': Quart,
+                            'Crespo': Crespo,
+                            'Frandsen': Frandsen_turb,
+                            'Larsen': Larsen_turb,
+                            'tian': Tian,
+                            'gao': Gao,
+                            'IEC': IEC,
+                            None: None}
 
-        CostModels = {'COE':COE,
-                      'LCOE':LCOE,}
+        CostModels = {'COE': COE,
+                      'LCOE': LCOE, }
 
-        ModelsDict = {'wm':WakeModels,
-                      'wsm':SuperpositionModels,
-                      'tim':TurbModels,
-                      'cost':CostModels,}
+        ModelsDict = {'velocity': VelocityModels,
+                      'combination': CombinationModels,
+                      'turbulence': TurbulenceModels,
+                      'cost': CostModels, }
 
         return ModelsDict[model][name]
 

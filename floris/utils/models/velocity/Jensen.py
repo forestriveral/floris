@@ -131,8 +131,15 @@ def calculation_test(num=500, test="vect"):
             data[i, -1] = vops.wake_overlap(data[i, 1], data[i, 2], data[i, 0])
     end = time.time()
     print(f"{test} | Using time: {end - start}")
-    
+
     return data
+
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+#                            MISCELLANEOUS                                     #
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+
+
 
 
 
@@ -140,7 +147,7 @@ if __name__ == "__main__":
     m = 10.
     n = 0.
     I_w = 0.12
-    
+
     # test = JensenWake(np.array([0., 80. * m]), 8, 0.8, 80, 70,
     #                   I_w=I_w)
     # print(test.wake_width(80. * m))
@@ -148,9 +155,9 @@ if __name__ == "__main__":
     # print(test.wake_velocity(500))
     # d, I = test.wake_loss(np.array([80 * n, 0.]), 80)
     # print(d, I)
-    
+
     # data = Jensen_data_generator(50)
     # print(data.shape)
-    
+
     calculation_test(num=50000, test="vect")
     calculation_test(num=50000, test="iter")

@@ -10,7 +10,7 @@ from floris.utils.models.velocity.Jensen import JensenWake
 # large regular wind farms with rectangular shapes and with spacings
 # between turbines equal in both directions and lower than 10D
 
-def __Frandsen_wake(x, v_inflow, D_r, C_t, k_w=None):
+def _Frandsen_wake(x, v_inflow, D_r, C_t, k_w=None):
     k = 3  # either 3 Schlichting solution or 2 square root shape solution
     beta = (1 + np.sqrt(1 - C_t)) / (2 * np.sqrt(1 - C_t))
     alpha = 0.7 if k_w is None else 10 * k_w  # or 10k_w
@@ -39,11 +39,19 @@ class FrandsenWake(JensenWake):
         return 0.5 * (1 + np.sign(flag) * np.sqrt(1 - 2 * ((self.d_rotor / self.wake_width(x))**2) * self.C_thrust))
 
 
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+#                            MISCELLANEOUS                                     #
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+
+
+
+
+
 if __name__ == "__main__":
     m = 10.
     n = 0.
     I_w = 0.12
-    
+
     test = FrandsenWake(np.array([0., 80. * m]), 8, 0.8, 80, 70, "Crespo", I_w=I_w)
     print(test.wake_width(80. * m))
     print(test.alpha)

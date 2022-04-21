@@ -160,7 +160,8 @@ def output_txt(input):
 #                                     MAIN                                     #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 
-def __Ishihara_wake(x, y, z, v_inflow, D_r, C_t, I_a, z_hub):
+
+def _Ishihara_wake(x, y, z, v_inflow, D_r, C_t, I_a, z_hub):
     k_star = 0.11 * (C_t**1.07) * (I_a**0.20)
     epsilon = 0.23 * (C_t**-0.25) * (I_a**0.17)
     a = 0.93 * (C_t**-0.75) * (I_a**0.17)
@@ -218,7 +219,7 @@ class IshiharaWake(object):
         self.a = 0.93 * (self.C_thrust**-0.75) * (self.I_a**0.17)
         self.b = 0.42 * (self.C_thrust**0.6) * (self.I_a**0.2)
         self.c = 0.15 * (self.C_thrust**-0.25) * (self.I_a**-0.7)
-        
+
         self.d = 2.3 * (self.C_thrust**-1.2)
         self.e = 1.0 * (self.I_a**0.1)
         self.f = 0.7 * (self.C_thrust**-3.2) * (self.I_a**-0.45)
@@ -249,7 +250,7 @@ class IshiharaWake(object):
                    self.c * ((1 + (x / self.d_rotor))**-2))**2)
         b = -0.5 / (self.wake_sigma_Dr(x) * self.d_rotor)**2
         return a, b
-    
+
     def wake_velocity_integrand(self, d_streamwise, d_spanwise):
         A, B = self.deficit_constant(d_streamwise)
         return lambda r, t: A * np.exp(B * ((r * np.cos(t) + d_spanwise)**2 + (r * np.sin(t))**2)) * r
@@ -258,13 +259,13 @@ class IshiharaWake(object):
         A, B = self.deficit_constant(x)
         v_deficit = A * np.exp(B * (((z - self.z_hub)**2) + (y**2)))
         return v_deficit
-    
+
     def turbulence_constant(self, x):
         a = 1. / (self.d + self.e * (x / self.d_rotor) +
                   self.f * ((1 + (x / self.d_rotor))**-2))
         b = self.deficit_constant(x)[1]
         return a, b
-    
+
     def wake_turbulence_integrand(self, d_streamwise):
         A, B = self.turbulence_constant(d_streamwise)
         def turbulence(y, z):
@@ -284,7 +285,7 @@ class IshiharaWake(object):
                                 self.k_2(r) * np.exp(B * ((r + 0.5 * self.d_rotor)**2))) - \
                                     self.delta(z)
         return added_turbulence
-    
+
     def wake_loss(self, down_loc, down_d_rotor, down_z_hub=None, eq=None):
         assert self.ref_loc[1] >= down_loc[1], "Reference WT must be upstream downstream WT!"
         d_streamwise,  d_spanwise = \
@@ -334,7 +335,7 @@ if __name__ == "__main__":
     # print("v_deficit", test.v_deficit(500, 0, 70))
     # print("v_wake", test.v_wake(500, 0, 70))
     # print("I_added", test.I_added(500, 0, 70))
-    
+
     def turbulence(y, z):
         x_D, C, I, D = 5, 0.8, 0.077, 80
         r = np.sqrt(y**2 + z**2)
@@ -349,7 +350,7 @@ if __name__ == "__main__":
         # print(d, e, f)
         sigma_D_r = k_star * x_D + ep
         # print(sigma_D_r)
-        
+
         def k_1(r):
             if (r / D) > 0.5:
                 return 1.
@@ -372,26 +373,26 @@ if __name__ == "__main__":
         I_add = B * (k_1(r) * np.exp(- (((r / D) - 0.5)**2) / (2 * sigma_D_r**2)) +
                      k_2(r) * np.exp(- (((r / D) + 0.5)**2) / (2 * sigma_D_r**2))) - delta(z, 70.)
         return I_add
-    
+
     R = 40.
     d = 40.
-    
+
     def z_range(y, r, d_spanwise):
         assert (y >= d_spanwise - r ) and (y <= d_spanwise + r)
         return np.sqrt(r**2 - (y - d_spanwise)**2)
-    
+
     # print(turbulence(50., 0.))
     # print(z_range(0, R, d))
     r, e = integrate.dblquad(turbulence, -R + d, R + d, lambda y: -z_range(y, R, d), lambda y : z_range(y, R, d))
     print("(1)-->", r / (np.pi * R**2))
-    
+
     m = 5.
     n = 0.
     # T_m = None
     T_m = "Ishihara"
     I_w = None
     I_a = 0.077
-    
+
     test = IshiharaWake(np.array([0., 80. * m]), 8, 0.8, 80, 70,
                           T_m=T_m, I_w=I_w, I_a=I_a)
     std = test.wake_sigma_Dr(80. * m) * 80
@@ -405,4 +406,3 @@ if __name__ == "__main__":
     iv, it = test.wake_loss(np.array([40., 0.]), 80)
     print("(2)-->", iv, it)
     # print(test.wake_turbulence_integrand(80. * m)[0](50., 70.))
-    
