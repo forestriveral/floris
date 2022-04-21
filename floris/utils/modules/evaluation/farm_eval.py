@@ -3,27 +3,28 @@ from __future__ import annotations
 import os
 import copy
 import fnmatch
+from pathlib import Path
+from collections import OrderedDict
+
 # import typing
 import yaml
 import numpy as np
 import import_string
-from pathlib import Path
+
 # from typing import Any, Tuple
 # from attrs import define, field
 import matplotlib.pyplot as plt
-from collections import OrderedDict
 
-
-from floris.simulation import Floris, turbine
-from floris.tools import FlorisInterface
-from floris.logging_manager import LoggerBase
+from floris.tools import FlorisInterface, visualize_cut_plane
 from floris.type_dec import NDArrayFloat, FromDictMixin
-from floris.simulation.wake import MODEL_MAP
 from floris.utilities import load_yaml
-
-from floris.tools import visualize_cut_plane
+from floris.simulation import Floris, turbine
 from floris.utils.tools import operation as tops
+from floris.logging_manager import LoggerBase
+from floris.simulation.wake import MODEL_MAP
 from floris.utils.tools.layout_loader import WindFarmLayout as WFL
+
+
 # from floris.utils.visualization import evaluation as veval
 
 
@@ -40,7 +41,7 @@ def _turbine_library_loader():
         my_turbine_library = '../../inputs/turbines/'
         turbines = os.listdir(turbine_library) + \
                 fnmatch.filter(os.listdir(my_turbine_library), '*.yaml')
-        return set([t.strip('.yaml') for t in turbines])
+        return {t.strip('.yaml') for t in turbines}
 
 
 class FarmPower(FlorisInterface):
@@ -90,11 +91,10 @@ class FarmPower(FlorisInterface):
                     model_name = wake[key_name] if key_name in wake.keys() \
                         else self.origin_floris.wake.model_strings[key_name]
                     floris_dict['wake'][f"wake_{key}eters"].update({model_name: value})
+                elif key in floris_dict['wake'].keys():
+                    floris_dict['wake'][key] = value
                 else:
-                    if key in floris_dict['wake'].keys():
-                        floris_dict['wake'][key] = value
-                    else:
-                        raise ValueError(f"{key} is not a valid wake parameter")
+                    raise ValueError(f"{key} is not a valid wake parameter")
             self.floris = Floris.from_dict(floris_dict)
         return self.floris.wake.model_strings
 
@@ -197,7 +197,7 @@ class FarmPower(FlorisInterface):
             wind_direction, wind_sector = config['direction'], config['sector']
         wind_speed = config.get('inflow', None) or self.origin_floris.flow_field.wind_speeds
         wind_turbine = config.get('turbine_type', None) or self.origin_floris.farm.turbine_type
-        for i, (case, wake_param) in enumerate(wake.items()):
+        for (case, wake_param) in wake.items():
             if wake_param.get('turbine_type', None):
                 wind_turbine = wake_param.pop('turbine_type')
             if wake_param.get('sector', None):
@@ -250,7 +250,7 @@ class FarmPower(FlorisInterface):
         if isinstance(params_dict, dict):
             wake_config = copy.deepcopy(params_dict)
         if isinstance(params_dict, (str, Path)):
-            wake_config = load_yaml(params_dict + '.yaml')
+            wake_config = load_yaml(f'{params_dict}.yaml')
         else:
             raise ValueError("Invalid import wake parameters YAML!")
         wake_config = OrderedDict(wake_config)

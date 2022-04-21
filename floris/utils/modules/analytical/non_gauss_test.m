@@ -3,7 +3,6 @@ clear;
 clc;
 
 % SOWFA data path (Change to your own data path)
-current_path = pwd;
 data_path = 'C:/Users/Li Hang/OneDrive - CivilEng/8_Desktop/CSSC Wake Simulation/SOWFA_data';
 
 % wake parameters
@@ -52,8 +51,7 @@ end
 p1 = 0.014;
 p2 = 0.24;
 p3 = 0.005;
-vel_index = find(velocity == vel);
-thrust = thrust(vel_index);
+thrust = thrust(velocity == vel);
 k0 = p1 * thrust^1.07 * turb^0.20;
 ep0 = p2 * thrust^-0.25 * turb^0.17;
 a0 = 4 * thrust^-0.5 * ep0;
@@ -77,8 +75,7 @@ p3 = 0.15;
 p4 = 0.472;
 p5 = 0.07;
 p6 = 0.254;
-vel_index = find(velocity == vel);
-thrust = thrust(vel_index);
+thrust = thrust(velocity == vel);
 k = p1 * thrust^1.07 * turb^0.20;
 ep = p2 * thrust^-0.25 * turb^0.17;
 a = 4 * thrust^-0.5 * ep;

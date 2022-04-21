@@ -27,7 +27,7 @@ class AV_2018_visual(object):
         default_figures = {'Fig_4_6': cls.Fig_4_6_plot,
                             'Fig_10_14': cls.Fig_10_14_plot,}
         fig_id = kwargs['eval_data']['config']['fig_id']
-        if fig_id in default_figures.keys():
+        if fig_id in default_figures:
             return default_figures[fig_id](**kwargs)
         else:
             raise ValueError(f"{fig_id} plotting is not supported")
@@ -205,4 +205,4 @@ def turbine_array_power(inds, powers):
 
 
 if __name__ == "__main__":
-    pass
+    AV_2018_visual()
