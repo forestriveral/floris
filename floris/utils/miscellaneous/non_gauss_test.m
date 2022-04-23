@@ -126,18 +126,22 @@ end
 
 
 % wake_plot
-fig_title = strcat(['Wake velocity fitting with ', 'U=', num2str(vel), 'm/s, ', 'I=', num2str(turb), '%%, ', 'Yaw=', num2str(yaw), ' deg']);
+fig_title = strcat(['Wake velocity fitting with ', 'U=', num2str(vel), 'm/s, ', ...
+'I=', num2str(turb), '%%, ', 'Yaw=', num2str(yaw), ' deg']);
 fprintf([fig_title, '\n']);
 fig = figure('Units','centimeter','Position',[10 10 35 25]);
 % tsub = tight_subplot(3, 3, [.01 .03], [.1 .01], [.01 .01]);
 for i = 1:1:length(streamdist)
     subplot(3, 3, i);
     sowfa_vel = 1 - sowfa_data(i, :) / max(sowfa_data(i, :));
-    sofwa_handle = plot(r_D(ind), sowfa_vel(ind), 'linestyle', 'none', 'color', 'w', 'linewidth', 1., 'marker', 'o',  'markersize', 6, 'markerfacecolor', 'w', 'markeredgecolor', 'k');
+    sofwa_handle = plot(r_D(ind), sowfa_vel(ind), 'linestyle', 'none', 'color', 'w', ...
+    'linewidth', 1., 'marker', 'o',  'markersize', 6, 'markerfacecolor', 'w', 'markeredgecolor', 'k');
     hold on;
-    gauss_handle = plot(r_D, Gauss_deficit(i, :), 'linestyle', '-', 'color', 'k', 'linewidth', 1.5, 'marker', 'none');
+    gauss_handle = plot(r_D, Gauss_deficit(i, :), 'linestyle', '-', 'color', 'k', ...
+    'linewidth', 1.5, 'marker', 'none');
     hold on;
-    non_gauss_handle = plot(r_D, Non_Gauss_deficit(i, :), 'linestyle', '-', 'color', 'r', 'linewidth', 1.5, 'marker', 'none');
+    non_gauss_handle = plot(r_D, Non_Gauss_deficit(i, :), 'linestyle', '-', 'color', 'r', ...
+    'linewidth', 1.5, 'marker', 'none');
     if i == 7 || i == 8 || i == 9
         xlabel('y/D', 'fontsize', 16, 'fontname', 'Times New Roman', 'fontangle', 'italic');
     end
@@ -149,10 +153,13 @@ for i = 1:1:length(streamdist)
     text(0.7, 0.9, subplot_title, 'units', 'normalized', 'fontsize', 16, 'color', 'k');
     if i == 1
         legend_handles = [sofwa_handle, gauss_handle, non_gauss_handle];
-        legend(legend_handles, 'SOWFA', 'Gauss', 'Non-Gauss', 'location', 'North', 'orientation', 'horizontal', 'fontsize', 18, 'fontname', 'Times New Roman', 'Position', [0.32, 0.91, 0.5, 0.1], 'box', 'off');
+        legend(legend_handles, 'SOWFA', 'Gauss', 'Non-Gauss', 'location', 'North', ...
+        'orientation', 'horizontal', 'fontsize', 18, 'fontname', 'Times New Roman', ...
+        'Position', [0.32, 0.91, 0.5, 0.1], 'box', 'off');
     end
     if i == 8
-        title(fig_title, 'fontsize', 18, 'fontname', 'Times New Roman', 'fontweight', 'bold', 'units', 'normalized', 'Position', [0.5, -0.45]);
+        title(fig_title, 'fontsize', 18, 'fontname', 'Times New Roman', ...
+        'fontweight', 'bold', 'units', 'normalized', 'Position', [0.5, -0.45]);
     end
 end
 
