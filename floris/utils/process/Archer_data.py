@@ -10,8 +10,9 @@ from matplotlib.ticker import MultipleLocator
 from floris.utils.visual import property as ppt
 
 
-data_path = 'C:/Users/Li Hang/Desktop/wake_performance_data'
+data_path = '../data/others/wake_performance_data'
 turbine_id_dict = {'An_179': [32, 33, 34, 35, 36],
+                   'An_183': [1, 2, 3, 4, 5],
                    'An_228': [1, 31, 32, 43, 44, 45, 66, 67, 68, 77, 78, 79, 85, 86],
                    'An_341': [111, 110, 109, 108, 107, 106],
                    'Lill_180': [15, 22, 28, 39, 43, 46],
@@ -92,8 +93,15 @@ def wake_peformance_plot(fname, **kwargs):
     plt.show()
 
 
+def wake_error():
+    fnames = turbine_id_dict.keys()
+    turbine_ind = turbine_id_dict[fnames]
+    power_data = pd.read_csv(f'{data_path}/{fnames}.csv')
+    obs_error_up = power_data.pop('obs_up').values
+    obs_error_down = power_data.pop('obs_down').values
+
 
 if __name__ == "__main__":
-    wake_peformance_plot('Rd_304')
+    wake_peformance_plot('An_183')
     # for fname in turbine_id_dict.keys():
     #     wake_peformance_plot(fname)

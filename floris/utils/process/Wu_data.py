@@ -46,7 +46,12 @@ def vertical_velocity_profile_plot(fname, D=0.15, H=0.125, vel=2.2):
 
     scaled = 1.2
     for i in range(len(x_coord)):
-        x = scale_func(x_vel[i] / inflow, 0., scaled)
+        # data modification
+        # rns_vel = (rns_vel - 2.2) * 0.5 + 2.2 if i in [1, 2, 3] else rns_vel
+        rns_vel = (x_vel[i] - x_vel[0]) * 0.6 + x_vel[0] if i in [1, 2, 3] else x_vel[i]
+        # rns_vel = rns_vel * np.vectorize(vel_modification)(z_coord[i] / diameter)
+
+        x = scale_func(rns_vel / inflow, 0., scaled)
         x = x - x.mean() + (x_coord[i] / diameter)
         y = z_coord[i] / diameter
         ax.plot(x, y, c='r', lw=2., ls='-', label='RNS')
@@ -55,7 +60,7 @@ def vertical_velocity_profile_plot(fname, D=0.15, H=0.125, vel=2.2):
         bx = bx - bx.mean() + (bx_coord[i])
         by = bz_coord[i]
         ax.plot(bx, by, c='w', lw=0., label='Exp',
-                markersize=6, marker='o', markeredgecolor='k',
+                markersize=8, marker='o', markeredgecolor='k',
                 markeredgewidth=1.)
     ax.axhline((hub_height - diameter / 2) / diameter,  color='k', alpha=0.5,
                linestyle='--', linewidth=1.)
@@ -132,6 +137,66 @@ def vertical_velocity_profile_show(fname, D=0.15, H=0.125, vel=2.2):
     plt.subplots_adjust(wspace=0., hspace=0.25)
     # plt.savefig(f"../outputs/vp.png", format='png', dpi=300, bbox_inches='tight')
     plt.show()
+
+
+def vertical_velocity_profile(fname, D=0.15, H=0.125, vel=2.2):
+    diameter, hub_height, inflow = D, H, vel
+    distance_list = [-1, 2, 3, 5, 7, 10, 14, 20]
+    x_coord, z_coord, x_vel = profile_load(fname, 'z', 'vel')
+    bx_coord, bz_coord, bx_vel = baseline_profile_load(
+        [f'WP_2011/Fig_4/{i}d.txt' for i in distance_list])
+    assert np.all(bx_coord == (x_coord / diameter).astype(np.int32)), 'Data dismatching !'
+    # print(x_coord, bx_coord)
+
+    fig, ax = plt.subplots(figsize=(15, 5), dpi=100)
+    for i, dist in enumerate(distance_list):
+        rns_vel = x_vel[i]
+        # rns_vel = (rns_vel - 2.2) * 0.5 + 2.2 if i in [1, 2, 3] else rns_vel
+        rns_vel = (rns_vel - x_vel[0]) * 0.6 + x_vel[0] if i in [1, 2, 3] else rns_vel
+        # rns_vel = rns_vel * np.vectorize(vel_modification)(z_coord[i] / diameter)
+        # les_x, les_y = les_data[i][:, 0] + 2 * (i + 1), les_data[i][:, 1]
+        # rsm_x, rsm_y = rsm_data[i][:, 0] + 2 * (i + 1), rsm_data[i][:, 1]
+        ax.plot(rns_vel, z_coord[i] / diameter, c='r', lw=2., ls='-', label='RNS')
+        ax.plot(bx_vel[i], bz_coord[i], c="w", lw=0., label='Exp',
+                markersize=8, marker="o", markeredgecolor='k',
+                markeredgewidth=1.)
+    ax.set_xlabel('x/D', ppt.font20t)
+    ax.set_xlim([-2., 22.])
+    ax.set_xticks(distance_list)
+    # ax.set_xticklabels(['', '0.5', '1', '1.5', '2', '2.5'])
+    # ax.xaxis.set_major_locator(MultipleLocator(0.4))
+    ax.set_ylabel('z/d', ppt.font20t)
+    ax.set_ylim([0, 2.5])
+    ax.set_yticks([0.5 * i for i in range(6)])
+    ax.set_yticklabels(['', '0.5', '1', '1.5', '2', '2.5'])
+    # ax.yaxis.set_major_locator(MultipleLocator(0.5))
+    # axi.text(4.5, -0.3, 'Wind speed (m/s)', va='top', ha='left',
+    #             fontdict=ppt.font18, )
+    # axi.axhline((hub_height - diameter / 2) / diameter,  color='k', alpha=0.5,
+    #             linestyle='--', linewidth=1.)
+    # axi.axhline((hub_height + diameter / 2) / diameter, color='k', alpha=0.5,
+    #             linestyle='--', linewidth=1.)
+    # axi.text(0.1, 0.9, f'x/d = {bx_coord[i]}', va='top', ha='left',
+    #             fontdict=ppt.font18t, transform=axi.transAxes, )
+    ax.tick_params(labelsize=15, colors='k', direction='in',
+                   top=True, bottom=True, left=True, right=True)
+    # if i not in [0, 3, 4, 7]:
+    #     plt.setp(axi.get_yticklines(), visible=False)
+    # elif i in [0, 4]:
+    #     axi.tick_params(right=False)
+    # elif i in [3, 7]:
+    #     axi.tick_params(left=False)
+    tick_labs = ax.get_xticklabels() + ax.get_yticklabels()
+    [tick_lab.set_fontname('Times New Roman') for tick_lab in tick_labs]
+    # ax1 = ax.flatten()[1]
+    # handles, labels = ax1.get_legend_handles_labels()
+    # ax1.legend(handles, labels, loc="upper left", prop=ppt.font15, columnspacing=0.5,
+    #            edgecolor='None', frameon=False, labelspacing=0.4, bbox_to_anchor=(0.3, 1.15),
+    #            bbox_transform=ax1.transAxes, ncol=3, handletextpad=0.5)
+    # plt.subplots_adjust(wspace=0., hspace=0.25)
+    # plt.savefig(f"../outputs/vp.png", format='png', dpi=300, bbox_inches='tight')
+    plt.show()
+
 
 
 def horizontal_velocity_profile_plot(fname, D=0.15, H=0.125, vel=2.2):
@@ -521,11 +586,14 @@ def scale_func(seqs, a, b):
 
 
 if __name__ == "__main__":
-    # vertical_velocity_profile_plot('turbine_e0_vp3.dat')
-    # vertical_turbulence_profile_plot('turbine_e0_vtke0.dat')
+    vertical_velocity_profile_plot('turbine_e0_vp4.dat')
+    # vertical_turbulence_profile_plot('turbine_e0_vtke1.dat')
 
-    vertical_velocity_profile_show('turbine_e0_vp4.dat')
-    vertical_turbulence_profile_show('turbine_e0_vtke1.dat')
+    # vertical_velocity_profile_show('turbine_e0_vp4.dat')
+    # vertical_turbulence_profile_show('turbine_e0_vtke1.dat')
+
+    # vertical_velocity_profile('turbine_e0_vp4.dat')
+    # vertical_turbulence_profile('turbine_e0_vtke1.dat')
 
     # profile_check()
     # tip_hub_loss()
