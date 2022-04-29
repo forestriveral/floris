@@ -25,6 +25,8 @@ turbine_id_dict = {'An_179': [32, 33, 34, 35, 36],
                    'Nys_278': [1, 2, 3, 4, 5, 6, 7, 8],
                    'Rd_304': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
                    }
+model_label = ['Jensen', 'Frandsen', 'Multizone',
+               'Turbopark', 'Bastankhah', 'Ishihara-Qian']
 
 
 
@@ -93,15 +95,49 @@ def wake_peformance_plot(fname, **kwargs):
     plt.show()
 
 
-def wake_error():
+def wake_error_plot():
     fnames = turbine_id_dict.keys()
-    turbine_ind = turbine_id_dict[fnames]
-    power_data = pd.read_csv(f'{data_path}/{fnames}.csv')
-    obs_error_up = power_data.pop('obs_up').values
-    obs_error_down = power_data.pop('obs_down').values
+    power_errors = np.zeros((6, len(fnames)))
+    for i, fname in enumerate(fnames):
+        power_data = pd.read_csv(f'{data_path}/{fname}.csv')
+        obs_mean = power_data.pop('obs_mean').values
+        _ = power_data.pop('obs_up').values
+        _ = power_data.pop('obs_down').values
+        for j, label in enumerate(model_label):
+            col_name = power_data.columns[j]
+            col_data = power_data[col_name].values
+            power_errors[j, i] = np.mean(np.abs(col_data - obs_mean))
+    power_errors = np.mean(power_errors, axis=1) * 2.
+    print(power_errors)
+
+    fig = plt.figure(figsize=(8, 6), dpi=120)
+    ax = fig.add_subplot(111)
+    # ax.bar(x + i * bar_width, v1,
+    #        bar_width,
+    #        color=c1,
+    #        align='center',
+    #        label=labels[i],
+    #        hatch=h1,
+    #        linewidth=1.0,
+    #        edgecolor='k',
+    #        alpha=a1,)
+    # ticks = ax.get_xticklabels() + ax.get_yticklabels()
+    # [tick.set_fontname('Times New Roman') for tick in ticks]
+    # ax.tick_params(labelsize=15, colors='k', direction='in',
+    #             top=True, bottom=True, left=True, right=True)
+    # ax.set_xlabel(r'Wind scenario', ppt.font15)
+    # ax.set_xticks(x + (n - 1) * bar_width / 2)
+    # ax.set_xticklabels(tick_labels)
+    # ax.set_xticklabels([])
+    # ax.set_ylim(ylims[j])
+    # ax.set_ylabel(ylabels[j], ppt.font15)
+    # ax.text(2.2, text_yaxis[j], f"${numbers[j]}$", fontsize=15, color='k')
+
+    plt.show()
 
 
 if __name__ == "__main__":
-    wake_peformance_plot('An_183')
+    wake_error_plot()
+    # wake_peformance_plot('An_183')
     # for fname in turbine_id_dict.keys():
     #     wake_peformance_plot(fname)

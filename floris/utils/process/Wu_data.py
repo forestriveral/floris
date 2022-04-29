@@ -104,7 +104,7 @@ def vertical_velocity_profile_show(fname, D=0.15, H=0.125, vel=2.2):
         rns_vel = (rns_vel - x_vel[0]) * 0.6 + x_vel[0] if i in [1, 2, 3] else rns_vel
         # rns_vel = rns_vel * np.vectorize(vel_modification)(z_coord[i] / diameter)
         axi.plot(rns_vel, z_coord[i] / diameter,
-                 c='r', lw=2., ls='-', label='RNS')
+                 c='r', lw=2., ls='-', label='RSM')
         axi.plot(bx_vel[i], bz_coord[i], c="w", lw=0., label='Exp',
                  markersize=6, marker="o", markeredgecolor='k',
                  markeredgewidth=1.)
@@ -335,7 +335,7 @@ def vertical_turbulence_profile_show(fname, D=0.15, H=0.125, vel=2.2):
         print(gauss_factor)
         rns_turb = (rns_turb - x_turb[0]) * 0.4 * (1 - gauss_factor) + x_turb[0]
         axi.plot(rns_turb, z_coord[i] / diameter,
-                 c='r', lw=2., ls='-', label='RNS')
+                 c='r', lw=2., ls='-', label='RSM')
         axi.plot(bx_turb[i], bz_coord[i], c="w", lw=0., label='Exp',
                  markersize=6, marker="o", markeredgecolor='k',
                  markeredgewidth=1.)
@@ -586,11 +586,11 @@ def scale_func(seqs, a, b):
 
 
 if __name__ == "__main__":
-    vertical_velocity_profile_plot('turbine_e0_vp4.dat')
+    # vertical_velocity_profile_plot('turbine_e0_vp4.dat')
     # vertical_turbulence_profile_plot('turbine_e0_vtke1.dat')
 
-    # vertical_velocity_profile_show('turbine_e0_vp4.dat')
-    # vertical_turbulence_profile_show('turbine_e0_vtke1.dat')
+    vertical_velocity_profile_show('turbine_e0_vp4.dat')
+    vertical_turbulence_profile_show('turbine_e0_vtke1.dat')
 
     # vertical_velocity_profile('turbine_e0_vp4.dat')
     # vertical_turbulence_profile('turbine_e0_vtke1.dat')

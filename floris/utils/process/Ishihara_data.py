@@ -9,6 +9,8 @@ from floris.utils.visual import property as ppt
 
 
 data_dir = "../data/others/Ishihara_nonyawed/"
+case_name = ['137_037_vv', '137_037_vh', '137_081_vv', '137_081_vh',
+             '137_037_tv', '137_037_th', '137_081_tv', '137_081_th']
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
@@ -16,7 +18,7 @@ data_dir = "../data/others/Ishihara_nonyawed/"
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 
 
-def vv_profile_plot(fcase='137_037_vv', vertical=True,):
+def vv_profile_plot(fcase='137_037_vv'):
     # diameter, hub_height, inflow = D, H, vel
     distance_list = [2, 4, 6, 8]
     vel_2d_les = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_2d_les.txt', skiprows=4)
@@ -38,7 +40,7 @@ def vv_profile_plot(fcase='137_037_vv', vertical=True,):
     # ax.set_xticks([-2, 10])
     ax.xaxis.set_major_locator(MultipleLocator(2.))
     ax.set_ylabel('z/H', ppt.font20t)
-    if vertical:
+    if fcase[-1] == 'v':
         ax.set_ylim([0, 2.5])
         ax.set_yticks([0.5 * i for i in range(6)])
         ax.set_yticklabels(['', '0.5', '1', '1.5', '2', '2.5'])
@@ -57,7 +59,7 @@ def vv_profile_plot(fcase='137_037_vv', vertical=True,):
         rsm_x, rsm_y = rsm_data[i][:, 0] + 2 * (i + 1), rsm_data[i][:, 1]
 
         ax.plot(rsm_x, rsm_y, c='r', lw=2., ls='-', label='RSM')
-        ax.plot(les_x, les_y, c='k', lw=2., ls='-', label='LES')
+        ax.plot(les_x, les_y, c='k', lw=2., ls='--', label='LES')
         # ax.plot(les_x, les_y, c='k', lw=0., label='LES',
         #         markersize=10, marker='x', markeredgecolor='k',
         #         markeredgewidth=1.)
@@ -85,11 +87,11 @@ def vv_profile_plot(fcase='137_037_vv', vertical=True,):
               bbox_transform=ax.transAxes)
     # turbine_plot(ax, diameter, hub_height, direction='v')
     # ax.set_aspect("equal")
-    plt.savefig(f"./Ishihara_nonyawed/{fcase}.png", format='png', dpi=300, bbox_inches='tight')
+    plt.savefig(f"{data_dir}/{fcase}.png", format='png', dpi=300, bbox_inches='tight')
     plt.show()
 
 
-def tv_profile_plot(fcase='137_037_tv', vertical=True,):
+def tv_profile_plot(fcase='137_037_tv'):
     # diameter, hub_height, inflow = D, H, vel
     distance_list = [2, 4, 6, 8]
     turb_2d_les = np.loadtxt(f'{data_dir}/{fcase}/{fcase}_2d_les.txt', skiprows=4)
@@ -111,7 +113,7 @@ def tv_profile_plot(fcase='137_037_tv', vertical=True,):
     # ax.set_xticks([-2, 10])
     ax.xaxis.set_major_locator(MultipleLocator(2.))
     ax.set_ylabel('z/H', ppt.font20t)
-    if vertical:
+    if fcase[-1] == 'v':
         ax.set_ylim([0, 2.5])
         ax.set_yticks([0.5 * i for i in range(6)])
         ax.set_yticklabels(['', '0.5', '1', '1.5', '2', '2.5'])
@@ -130,7 +132,7 @@ def tv_profile_plot(fcase='137_037_tv', vertical=True,):
         rsm_x, rsm_y = rsm_data[i][:, 0] + 2 * (i + 1), rsm_data[i][:, 1]
 
         ax.plot(rsm_x, rsm_y, c='r', lw=2., ls='-', label='RSM')
-        ax.plot(les_x, les_y, c='k', lw=2., ls='-', label='LES')
+        ax.plot(les_x, les_y, c='k', lw=2., ls='--', label='LES')
         # ax.plot(les_x, les_y, c='k', lw=0., label='LES',
         #         markersize=10, marker='x', markeredgecolor='k',
         #         markeredgewidth=1.)
@@ -159,7 +161,7 @@ def tv_profile_plot(fcase='137_037_tv', vertical=True,):
               bbox_transform=ax.transAxes)
     # turbine_plot(ax, diameter, hub_height, direction='v')
     # ax.set_aspect("equal")
-    plt.savefig(f"./Ishihara_nonyawed/{fcase}.png", format='png', dpi=300, bbox_inches='tight')
+    plt.savefig(f"{data_dir}/{fcase}.png", format='png', dpi=300, bbox_inches='tight')
     plt.show()
 
 
@@ -181,5 +183,6 @@ def turbine_plot(ax, D, H, direction='v', origin=True):
 
 
 if __name__ == "__main__":
-    vv_profile_plot('137_081_vv', vertical=True)
-    # tv_profile_plot('137_081_tv', vertical=True)
+    for case in case_name:
+        vv_profile_plot(case)
+        tv_profile_plot(case)
