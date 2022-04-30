@@ -110,27 +110,31 @@ def wake_error_plot():
     power_errors = np.mean(power_errors, axis=1) * 2.
     print(power_errors)
 
-    fig = plt.figure(figsize=(8, 6), dpi=120)
+    n, bar_width = len(model_label), 0.4
+    x = np.arange(1, n + 1)
+    bar_colors = ['k', 'g', 'y', 'purple', 'b', 'r']
+    fig = plt.figure(figsize=(10, 8), dpi=120)
     ax = fig.add_subplot(111)
-    # ax.bar(x + i * bar_width, v1,
-    #        bar_width,
-    #        color=c1,
-    #        align='center',
-    #        label=labels[i],
-    #        hatch=h1,
-    #        linewidth=1.0,
-    #        edgecolor='k',
-    #        alpha=a1,)
-    # ticks = ax.get_xticklabels() + ax.get_yticklabels()
-    # [tick.set_fontname('Times New Roman') for tick in ticks]
-    # ax.tick_params(labelsize=15, colors='k', direction='in',
-    #             top=True, bottom=True, left=True, right=True)
-    # ax.set_xlabel(r'Wind scenario', ppt.font15)
-    # ax.set_xticks(x + (n - 1) * bar_width / 2)
-    # ax.set_xticklabels(tick_labels)
-    # ax.set_xticklabels([])
-    # ax.set_ylim(ylims[j])
-    # ax.set_ylabel(ylabels[j], ppt.font15)
+    ax.bar(x, power_errors,
+           bar_width,
+           color=bar_colors,
+           align='center',
+           label=model_label,
+           hatch='',
+           linewidth=1.0,
+           edgecolor=bar_colors,
+           alpha=1.)
+    ticks = ax.get_xticklabels() + ax.get_yticklabels()
+    [tick.set_fontname('Times New Roman') for tick in ticks]
+    ax.tick_params(labelsize=15, colors='k', direction='in',
+                   top=True, bottom=True, left=True, right=True)
+    ax.set_xlabel(r'Analytical wake model', ppt.font15)
+    ax.set_xticks(x)
+    ax.set_xticklabels(model_label)
+    ax.set_ylim([0., 0.3])
+    ax.set_ylabel(r'Power error (%)', ppt.font15)
+    ax.set_yticks([0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3])
+    ax.set_yticklabels(['', '5', '10', '15', '20', '25', '30'])
     # ax.text(2.2, text_yaxis[j], f"${numbers[j]}$", fontsize=15, color='k')
 
     plt.show()
