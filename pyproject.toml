@@ -64,3 +64,9 @@ use_parentheses = true
 length_sort = true
 lines_after_imports = 2
 line_length = 88
+
+[tool.mypy]
+exclude = [
+    "floris/simulation/*",
+    "floris/tools/*",
+]

@@ -1,0 +1,14 @@
+ignore:
+  - data/*
+  - .venv/*
+  - '*_test.py'  # Note that any strings beginning with * must be quoted
+  - 'idea/*'
+  - '.vscode/*'
+  - '__pycache__/*'
+  - '*.pyc'
+  - '*.pyo'
+  - '*.DS_Store'
+  - '*.swp'
+  - '*.swo'
+  - 'floris/simulation/*'
+  - 'floris/tools/*'
