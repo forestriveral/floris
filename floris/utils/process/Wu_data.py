@@ -1,3 +1,4 @@
+import itertools
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -468,7 +469,7 @@ def profile_check():
 
     def dis_source(z, R=0.125, u0=0.115, z0=3e-5, k=0.42, C_u1=1., C_u2=1., C_mu=0.09,
                    C_w=1., sig_e=1.):
-        z = z if z <= 1.86 else 1.86
+        z = min(z, 1.86)
         return 1.225 * u0**4 / (k**2 * (z * R + z0)**2 * sig_e) * \
             (k**2 * (1.5 * C_u1 - C_u1 * np.log((z * R + z0) / z0) - C_u2)) + \
                 C_mu**0.5 * sig_e * C_w * np.sqrt(C_u1 * np.log((z * R + z0) / z0) + C_u2)
@@ -523,12 +524,11 @@ def profile_fitting(func, data, ratio, vel):
     # a = np.log((data[:, 1] * 0.125 + 3e-5) / 3e-5)
     C_u1, C_u2, C_mu, error = 0., 0., 0., np.inf
     for ci in search_range_1:
-        for cj in search_range_2:
-            for ck in search_range_3:
-                result = np.sqrt(2 * func(data[:, 1], C_u1=ci, C_u2=cj, C_mu=ck) * ratio) / vel(1.)
-                cost = np.sum((result - data[:, 0])**2)
-                if cost < error:
-                    C_u1, C_u2, C_mu, error = ci, cj, ck, cost
+        for cj, ck in itertools.product(search_range_2, search_range_3):
+            result = np.sqrt(2 * func(data[:, 1], C_u1=ci, C_u2=cj, C_mu=ck) * ratio) / vel(1.)
+            cost = np.sum((result - data[:, 0])**2)
+            if cost < error:
+                C_u1, C_u2, C_mu, error = ci, cj, ck, cost
     if (C_u1 == 0.) & (C_u2 == 0.) & (C_mu == 0.):
         raise RuntimeError("No fitting parameters found!")
     else:
@@ -558,12 +558,11 @@ def tip_hub_loss():
 
 def vel_modification(z):
     if z > 1.6:
-        a = 0.8
+        return 0.8
     elif (z <= 1.6) & (z >=0.3):
-        a = 1.5
+        return 1.5
     else:
-        a = 0.7
-    return a
+        return 0.7
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
@@ -572,8 +571,7 @@ def vel_modification(z):
 
 
 def data_loader(path):
-    data = pd.read_csv(path, index_col=['nodenumber'],)
-    return data
+    return pd.read_csv(path, index_col=['nodenumber'],)
 
 def data_trunc(data, num):
     data_b , data_a = str(data).split('.')

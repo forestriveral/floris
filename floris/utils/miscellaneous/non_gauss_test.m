@@ -17,6 +17,9 @@ ind = (1:20:1001);
 vel = 4;   % velocity = 4, 6, 10, 15, 18
 turb = 2;  % turbulence = 2, 6, 10
 yaw = 0;   % yaw angle = 0, 10, 20, 30, -10, -20, -30
+% case_name_4 = [4, 2, 0; 4, 6, 0; 4, 6, 10; 4, 6, 20; 4, 6, 30; 4, 10, 0];
+% case_name_6 = [4, 2, 0; 4, 6, 0; 4, 6, 10; 4, 6, 20; 4, 6, 30; 4, 10, 0];
+
 
 % vel_data = sowfa_load(vel, turb, yaw, distance)
 if vel == 10
@@ -95,71 +98,74 @@ end
 
 
 % wake parameters fitting
-% p4_range = (0.42: 0.01: 0.49);
-% p5_range = (0.07: 0.01: 0.13);
-% p6_range = (0.22: 0.01: 0.28);
-% error_0 = inf;
-% solution = zeros(1, 3);
-% for p4 = p4_range
-%     for p5 = p5_range
-%         for p6 = p6_range
-%             error_1 = 0.;
-%             for i = 1:1:length(streamdist)
-%                 sowfa_velocity = 1 - sowfa_data(i, :) / max(sowfa_data(i, :));
-%                 % Non-gaussian wake velocity calculation
-%                 x_D = streamdist(i);
-%                 sigma_D = k * x_D + ep;
-%                 A = 1 / (a + b * x_D + c * (1 + x_D)^-2)^2;
-%                 B = 1 ./ (p4 * r_D.^2 +  p5 * r_D + p6);
-%                 gauss_velocity = A * B .* exp(- r_D.^2 / (2 * sigma_D^2));
-%                 % Error accumulation
-%                 error_1 = error_1 + sum(abs(gauss_velocity - sowfa_velocity).^2);
-%             end
-%             if error_1 < error_0
-%                 solution = [p1, p2, p3];
-%                 error_0 = error_1;
-%             end
-%         end
-%     end
-% end
-% fprintf(['Optimal parameters: ', solution, 'Error: ', error_0, '\n']);
+p4_range = (0.42: 0.01: 0.49);
+p5_range = (0.07: 0.01: 0.13);
+p6_range = (0.22: 0.01: 0.28);
+error_0 = inf;
+solution = zeros(1, 3);
+for p4 = p4_range
+    for p5 = p5_range
+        for p6 = p6_range
+            error_1 = 0.;
+            for i = 1:1:length(streamdist)
+                sowfa_velocity = 1 - sowfa_data(i, :) / max(sowfa_data(i, :));
+                % Non-gaussian wake velocity calculation
+                x_D = streamdist(i);
+                sigma_D = k * x_D + ep;
+                A = 1 / (a + b * x_D + c * (1 + x_D)^-2)^2;
+                B = 1 ./ (p4 * r_D.^2 +  p5 * r_D + p6);
+                gauss_velocity = A * B .* exp(- r_D.^2 / (2 * sigma_D^2));
+                % Error accumulation
+                error_1 = error_1 + sum(abs(gauss_velocity - sowfa_velocity).^2);
+            end
+            if error_1 < error_0
+                solution = [p1, p2, p3];
+                error_0 = error_1;
+            end
+        end
+    end
+end
+fprintf('\nOptimal parameters: ');
+disp(solution)
+fprintf('Error: ');
+disp(error_0)
 
 
 % wake_plot
-fig_title = strcat(['Wake velocity fitting with ', 'U=', num2str(vel), 'm/s, ', ...
-'I=', num2str(turb), '%%, ', 'Yaw=', num2str(yaw), ' deg']);
-fprintf([fig_title, '\n']);
-fig = figure('Units','centimeter','Position',[10 10 35 25]);
-% tsub = tight_subplot(3, 3, [.01 .03], [.1 .01], [.01 .01]);
-for i = 1:1:length(streamdist)
-    subplot(3, 3, i);
-    sowfa_vel = 1 - sowfa_data(i, :) / max(sowfa_data(i, :));
-    sofwa_handle = plot(r_D(ind), sowfa_vel(ind), 'linestyle', 'none', 'color', 'w', ...
-    'linewidth', 1., 'marker', 'o',  'markersize', 6, 'markerfacecolor', 'w', 'markeredgecolor', 'k');
-    hold on;
-    gauss_handle = plot(r_D, Gauss_deficit(i, :), 'linestyle', '-', 'color', 'k', ...
-    'linewidth', 1.5, 'marker', 'none');
-    hold on;
-    non_gauss_handle = plot(r_D, Non_Gauss_deficit(i, :), 'linestyle', '-', 'color', 'r', ...
-    'linewidth', 1.5, 'marker', 'none');
-    if i == 7 || i == 8 || i == 9
-        xlabel('y/D', 'fontsize', 16, 'fontname', 'Times New Roman', 'fontangle', 'italic');
-    end
-    if i == 1 || i == 4 || i == 7
-        ylabel('deficit', 'fontsize', 16, 'fontname', 'Times New Roman', 'fontangle', 'italic');
-    end
-    axis([-1.5, 1.5, 0., 1.])
-    subplot_title = strcat(['x/D = ', num2str(streamdist(i))]);
-    text(0.7, 0.9, subplot_title, 'units', 'normalized', 'fontsize', 16, 'color', 'k');
-    if i == 1
-        legend_handles = [sofwa_handle, gauss_handle, non_gauss_handle];
-        legend(legend_handles, 'SOWFA', 'Gauss', 'Non-Gauss', 'location', 'North', ...
-        'orientation', 'horizontal', 'fontsize', 18, 'fontname', 'Times New Roman', ...
-        'Position', [0.32, 0.91, 0.5, 0.1], 'box', 'off');
-    end
-    if i == 8
-        title(fig_title, 'fontsize', 18, 'fontname', 'Times New Roman', ...
-        'fontweight', 'bold', 'units', 'normalized', 'Position', [0.5, -0.45]);
-    end
-end
+% fig_title = strcat(['Wake velocity fitting with ', 'U=', num2str(vel), 'm/s, ', ...
+% 'I=', num2str(turb), '%%, ', 'Yaw=', num2str(yaw), ' deg']);
+% fprintf([fig_title, '\n']);
+% fig = figure('Units','centimeter','Position',[10 10 35 25]);
+% % tsub = tight_subplot(3, 3, [.01 .03], [.1 .01], [.01 .01]);
+% for i = 1:1:length(streamdist)
+%     subplot(3, 3, i);
+%     sowfa_vel = 1 - sowfa_data(i, :) / max(sowfa_data(i, :));
+%     sofwa_handle = plot(r_D(ind), sowfa_vel(ind), 'linestyle', 'none', 'color', 'w', ...
+%     'linewidth', 1., 'marker', 'o',  'markersize', 6, 'markerfacecolor', 'w', 'markeredgecolor', 'k');
+%     hold on;
+%     gauss_handle = plot(r_D, Gauss_deficit(i, :), 'linestyle', '-', 'color', 'k', ...
+%     'linewidth', 1.5, 'marker', 'none');
+%     hold on;
+%     non_gauss_handle = plot(r_D, Non_Gauss_deficit(i, :), 'linestyle', '-', 'color', 'r', ...
+%     'linewidth', 1.5, 'marker', 'none');
+%     if i == 7 || i == 8 || i == 9
+%         xlabel('y/D', 'fontsize', 16, 'fontname', 'Times New Roman', 'fontangle', 'italic');
+%     end
+%     if i == 1 || i == 4 || i == 7
+%         ylabel('deficit', 'fontsize', 16, 'fontname', 'Times New Roman', 'fontangle', 'italic');
+%     end
+%     axis([-1.5, 1.5, 0., 1.])
+%     subplot_title = strcat(['x/D = ', num2str(streamdist(i))]);
+%     text(0.7, 0.9, subplot_title, 'units', 'normalized', 'fontsize', 16, 'color', 'k');
+%     if i == 1
+%         legend_handles = [sofwa_handle, gauss_handle, non_gauss_handle];
+%         legend(legend_handles, 'SOWFA', 'Gauss', 'Non-Gauss', 'location', 'North', ...
+%         'orientation', 'horizontal', 'fontsize', 18, 'fontname', 'Times New Roman', ...
+%         'Position', [0.32, 0.91, 0.5, 0.1], 'box', 'off');
+%     end
+%     if i == 8
+%         title(fig_title, 'fontsize', 18, 'fontname', 'Times New Roman', ...
+%         'fontweight', 'bold', 'units', 'normalized', 'Position', [0.5, -0.45]);
+%     end
+% end
 
