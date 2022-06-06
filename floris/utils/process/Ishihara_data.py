@@ -87,7 +87,7 @@ def vv_profile_plot(fcase='137_037_vv'):
               bbox_transform=ax.transAxes)
     # turbine_plot(ax, diameter, hub_height, direction='v')
     # ax.set_aspect("equal")
-    plt.savefig(f"{data_dir}/{fcase}.png", format='png', dpi=300, bbox_inches='tight')
+    # plt.savefig(f"{data_dir}/{fcase}.png", format='png', dpi=300, bbox_inches='tight')
     plt.show()
 
 
@@ -183,6 +183,7 @@ def turbine_plot(ax, D, H, direction='v', origin=True):
 
 
 if __name__ == "__main__":
-    for case in case_name:
-        vv_profile_plot(case)
-        tv_profile_plot(case)
+    # for case in case_name:
+    #     vv_profile_plot(case)
+    #     tv_profile_plot(case)
+    vv_profile_plot()
