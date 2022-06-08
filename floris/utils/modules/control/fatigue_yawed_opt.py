@@ -1,8 +1,14 @@
+import yaml
+import itertools
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import geatpy as ea
+from pathlib import Path
 from scipy import integrate
+import matplotlib.pyplot as plt
+from scipy.interpolate import interp1d
+
+from floris.utilities import load_yaml, cosd
 
 from floris.utils.tools import eval_ops as eops
 from floris.utils.tools import farm_config as fconfig
@@ -17,14 +23,12 @@ class WindFarm(object):
     def layout(cls):
         c_n, r_n = 8, 10
         labels = []
-        for i in range(1, r_n + 1):
-            for j in range(1, c_n + 1):
-                l = "c{}_r{}".format(j, i)
+        for i, j in itertools.product(range(1, r_n + 1), range(1, c_n + 1)):
+                l = f"c{i}_r{j}"
                 labels.append(l)
         locations = np.zeros((c_n * r_n, 2))
         num = 0
-        for i in range(r_n):
-            for j in range(c_n):
+        for num, (i, j) in enumerate(itertools.product(range(r_n), range(c_n))):
                 loc_x = 0. + 68.589 * j + 7 * 80. * i
                 loc_y = 3911. - j * 558.616
                 locations[num, :] = [loc_x, loc_y]
@@ -33,15 +37,15 @@ class WindFarm(object):
 
     @classmethod
     def params(cls):
-        params = dict()
-        params["D_r"] = [80.] # 制动盘直径
-        params["z_hub"] = [70.] # 轮毂高度
-        params["v_in"] = [4.] # 切入风速
-        params["v_rated"] = [15.] # 额定风速
-        params["v_out"] = [25.] # 切出风速
-        params["P_rated"] = [2.]  # 额定功率2MW
-        params["power_curve"] = ["horns"]
-        params["ct_curve"] = ["horns"]
+        params = {"D_r": [80.],
+                  "z_hub": [70.],
+                  "v_in": [4.],
+                  "v_rated": [15.],
+                  "v_out": [25.],
+                  "P_rated": [2.],
+                  "power_curve": ["horns"],
+                  "ct_curve": ["horns"],
+                  }
         return pd.DataFrame(params)
 
     @classmethod
@@ -118,26 +122,43 @@ class YawedLayoutPower(object):#计算风场产能
         cols = WindFarm.params().columns
         return pd.DataFrame(np.repeat(params, num, axis=0), columns=cols)
 
+    def turbine_cpct(self, turbine='horns'):
+        default_type = {"horns": 'Vesta_2MW',}
+        turbine_file = Path(f'../../inputs/turbines/{default_type[turbine]}.yaml').resolve()
+        with open(turbine_file) as fid:
+            cpct_table = yaml.load(fid, Loader=yaml.SafeLoader)['power_thrust_table']
+        power, speed = cpct_table['power'], cpct_table['wind_speed']
+        return interp1d(speed, power, fill_value=(0.0, 1.0), bounds_error=False)
+
     def yawed_power(self, layouts, yaweds, configs=None, **kwargs):
         if configs is not None:
             self.config_reset(configs, **kwargs)
+        assert (yaweds[:, 0] >= -30.).all() and (yaweds[:, 0] <= 30.).all(), \
+            "Yawed angle should be between -30 and 30"
+        assert (yaweds[:, 1] > 0.).all() and (yaweds[:, 1] < 0.5).all(), \
+            "Turbine induction should be between 0 and 0.5"
         self.initial(layouts, yawed=yaweds)
-        powers = np.vectorize(WindFarm.pow_curve)(self.single_yawed)
-        return powers
+        return self.single_yawed()
 
-    @property
     def single_yawed(self):
         wt_loc = coordinate_transform(self.layout, self.config['theta'])
         wt_index = np.argsort(wt_loc[:, 1])[::-1]
         assert len(wt_index) == wt_loc.shape[0]
+        turbine_power = np.zeros((len(wt_index)))
         turbine_deficit = np.full((len(wt_index), len(wt_index) + 2), None)
         turbine_turb = np.full((len(wt_index), len(wt_index) + 2), None)
         turbine_deficit[0, -2], turbine_deficit[0, -1] = 0., float(config["inflow"])
         turbine_turb[0, -2], turbine_turb[0, -1] = 0., config["turb"]
         for i, t in enumerate(wt_index):
-            ct_t, ytheta = 4 * self.yawed[t, 1] * (1 - self.yawed[t, 1]), self.yawed[t, 0]
+            ytheta, a = self.yawed[t, 0], self.yawed[t, 1]
+            cos_ytheta = np.cos(ytheta * np.pi / 180)
+            eff_ct = 1 - (1 - 2 * a * cos_ytheta)**2
+            eff_cp = 4 * a * (1 - a) ** 2 * 0.77 * cos_ytheta ** 1.88
+            # c_p = self.turbine_cpct(self.param.iloc[t]["power_curve"])(turbine_deficit[i, -1])
+            turbine_power[i] = 0.5 * 1.225 * np.pi * self.param.iloc[t]["D_r"]**2 \
+                / 4. * turbine_deficit[i, -1]**3 * eff_cp * 1e-6
             if i < len(wt_index) - 1:
-                wake = self.velocity(wt_loc[t, :], ct_t, self.param.iloc[t]["D_r"],
+                wake = self.velocity(wt_loc[t, :], eff_ct, self.param.iloc[t]["D_r"],
                                      self.param.iloc[t]["z_hub"], T_m=self.turbulence,
                                      I_w=turbine_turb[i, -1], I_a=self.config["turb"],
                                      ytheta=ytheta)
@@ -151,9 +172,27 @@ class YawedLayoutPower(object):#计算风场产能
                     np.max(turbine_turb[:i + 1, i + 1])**2 + self.config["turb"]**2)
                 turbine_deficit[i + 1, -1] = float(self.config["inflow"]) * (1 - total_deficit)
                 turbine_deficit[i + 1, -2] = total_deficit
-            yawed_power_reduction = np.cos(ytheta * np.pi / 180)**(1.88 / 3.0)
-            turbine_deficit[i, -1] = turbine_deficit[i, -1] * yawed_power_reduction
-        return powers_recorder(wt_index, turbine_deficit[:, -1])
+        return powers_recorder(wt_index, turbine_power)
+
+def thrust_power_test():
+    vesta_turbine = load_yaml(Path('../../inputs/turbines/Vesta_2MW.yaml').resolve())
+    power, thrust, speed = np.array(vesta_turbine['power_thrust_table']['power']), \
+        np.array(vesta_turbine['power_thrust_table']['thrust']), \
+            np.array(vesta_turbine['power_thrust_table']['wind_speed'])
+    diameter = vesta_turbine['rotor_diameter']
+    rotor_area = np.pi * diameter**2 / 4.
+    yaw_angle = 0.
+    induction = 0.5 / cosd(yaw_angle) * (1 - np.sqrt(1 - thrust * cosd(yaw_angle)))
+    thrust_0 = (1 - (1 - 2 * induction * cosd(yaw_angle))**2)
+    power_1 = 4 * induction * (1 - induction) ** 2 * 0.77
+
+    _, ax = plt.subplots(1, 1, figsize=(8, 6))
+    ax.plot(speed, power, c='k', label='C_p')
+    ax.plot(speed, thrust, c='b', label='C_t')
+    ax.plot(speed, induction, c='r', label='a')
+    ax.plot(speed, power_1, c='g', label='C_p_1')
+    ax.legend(loc='best')
+    plt.show()
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
@@ -220,48 +259,42 @@ class BastankhahWake(object):#BP尾流模型
         ytheta, distance = ytheta / 360 * 2 * np.pi, distance / self.d_rotor
         theta_func = lambda x_D: np.tan(
             np.cos(ytheta)**2 * np.sin(ytheta) * self.C_thrust * 0.5 * (1 + 0.09 * x_D)**-2)
-        offset = integrate.quad(theta_func, 0, distance)[0] * self.d_rotor
-        return offset
+        return integrate.quad(theta_func, 0, distance)[0] * self.d_rotor
 
     def wake_loss(self, down_loc, down_d_rotor):
+        down_loc[np.isclose(down_loc, 0., atol=1e-7)] = 0.
         assert self.ref_loc[1] >= down_loc[1], "Reference WT must be upstream downstream WT!"
         d_streamwise,  d_spanwise = \
             np.abs(self.ref_loc[1] - down_loc[1]), np.abs(self.ref_loc[0] - down_loc[0])
         if d_streamwise == 0.:
             return 0., 0.
         sigma_Dr = self.wake_sigma_Dr(d_streamwise / self.d_rotor)
-        if (d_spanwise / self.d_rotor) < self.r_D_ex or \
-            (d_streamwise / self.d_rotor) < self.x_D_ex:
-            wake_offset = self.wake_offset(self.ytheta, d_streamwise)
-            if self.ref_loc[0] - down_loc[0] == 0:
-                d_spanwise = np.abs(wake_offset)
-            elif self.ref_loc[0] - down_loc[0] > 0:
-                if wake_offset >= 0:
-                    d_spanwise = np.abs(d_spanwise + wake_offset)
-                else:
-                    d_spanwise = np.abs(np.abs(d_spanwise) - np.abs(wake_offset))
-            else:
-                if wake_offset >= 0:
-                    d_spanwise = np.abs(np.abs(d_spanwise) - np.abs(wake_offset))
-                else:
-                    d_spanwise = np.abs(d_spanwise + wake_offset)
-            integral_velocity, _ = integrate.dblquad(
-                self.wake_integrand(sigma_Dr, d_spanwise),
-                0, 2 * np.pi, lambda r: 0, lambda r: down_d_rotor / 2)
-            intersect_ratio = self.wake_intersection(
-                    d_spanwise, 4 * sigma_Dr * self.d_rotor * 0.5, down_d_rotor) \
-                        if self.T_m is not None else 0.
-            I_add = self.T_m(self.C_thrust, self.I_wake, d_streamwise / self.d_rotor) \
-                if self.T_m is not None else 0.
-            return integral_velocity / (0.25 * np.pi * down_d_rotor**2), I_add * intersect_ratio
-        else:
+        if d_spanwise / self.d_rotor >= self.r_D_ex and \
+            d_streamwise / self.d_rotor >= self.x_D_ex:
             return 0., 0.
+        wake_offset = self.wake_offset(self.ytheta, d_streamwise)
+        if self.ref_loc[0] - down_loc[0] == 0:
+            d_spanwise = np.abs(wake_offset)
+        elif self.ref_loc[0] - down_loc[0] > 0:
+            d_spanwise = np.abs(d_spanwise + wake_offset) if wake_offset >= 0 \
+                else np.abs(np.abs(d_spanwise) - np.abs(wake_offset))
+        else:
+            d_spanwise = np.abs(np.abs(d_spanwise) - np.abs(wake_offset)) if wake_offset >= 0 \
+                else np.abs(d_spanwise + wake_offset)
+        integral_velocity, _ = integrate.dblquad(
+            self.wake_integrand(sigma_Dr, d_spanwise),
+            0, 2 * np.pi, lambda r: 0, lambda r: down_d_rotor / 2)
+        intersect_ratio = self.wake_intersection(
+                d_spanwise, 4 * sigma_Dr * self.d_rotor * 0.5, down_d_rotor) \
+                    if self.T_m is not None else 0.
+        I_add = self.T_m(self.C_thrust, self.I_wake, d_streamwise / self.d_rotor) \
+            if self.T_m is not None else 0.
+        return integral_velocity / (0.25 * np.pi * down_d_rotor**2), I_add * intersect_ratio
 
 
 def Frandsen(C_t, I_0, x_D): ##湍流模型Frandsen
     K_n = 0.4
-    I_add = np.sqrt(K_n * C_t) / x_D
-    return I_add
+    return np.sqrt(K_n * C_t) / x_D
 
 
 def Sum_Squares(deficits, i, **kwargs):
@@ -291,8 +324,8 @@ def coordinate_transform(coordinates, angle):
 
 def wake_overlap(d_spanwise, r_wake, down_d_rotor):#尾流叠加模型
     if d_spanwise <= r_wake - (down_d_rotor / 2):
-            return 1.
-    elif d_spanwise > r_wake - (down_d_rotor / 2) and d_spanwise < r_wake + (down_d_rotor / 2):
+        return 1.
+    elif d_spanwise < r_wake + (down_d_rotor / 2):
         theta_w = np.arccos(
             (r_wake**2 + d_spanwise**2 - (down_d_rotor / 2)**2) / (2 * r_wake * d_spanwise))
         theta_r = np.arccos(((down_d_rotor / 2)**2 + d_spanwise **
@@ -412,16 +445,16 @@ class YawedOpt(object):
         [BestIndi, self.population] = myAlgorithm.run() # 执行算法模板，得到最优个体以及最后一代种群
         BestIndi.save("solution/Results") # 把最优个体的信息保存到文件中
         """=================================输出结果======================="""
-        print('Evaluation times:{}'.format(myAlgorithm.evalsNum))
+        print(f'Evaluation times:{myAlgorithm.evalsNum}')
         print('Elapsed time %s %s' % eops.time_formator(myAlgorithm.passTime))
         if BestIndi.sizes != 0:
             yawed_data = pd.read_csv(
-                f"../solution/Results/Phen.csv",
+                "../solution/Results/Phen.csv",
                 header=None).values.reshape(self.config["num"], 2)
             print('Optimal Yawed:(Turbine: Yaw/Induction)')
             for i in range(yawed_data.shape[0]):
                 print(f'   {i+1}: {yawed_data[i, 0]:.1f} / {yawed_data[i, 1]:.3f}')
-            print('Optimal Power:%s' % (BestIndi.ObjV[0][0]))
+            print(f'Optimal Power: {BestIndi.ObjV[0][0]}')
         else:
             print('No feasible solution')
 
@@ -521,15 +554,25 @@ if __name__ == "__main__":
               "turb": 0.077, }
 
     # turbine position: [[x1, y1], [x2, y2], ...]
-    layout = layout_generator()
-    print(layout)
+    # layout = layout_generator()
+    layout = np.array([[0, 0], [400, 0]])
+    yawed_1 = np.array([[10, 0.2], [0, 0.3]])
+    yawed_2 = np.array([[20, 0.2], [0, 0.3]])
+    # print(layout)
+    # print(yawed)
+    # thrust_power_test()
+
+    powers_1 = YawedLayoutPower(config).yawed_power(layout, yawed_1, config)
+    print(powers_1)
+    powers_2 = YawedLayoutPower(config).yawed_power(layout, yawed_2, config)
+    print(powers_2)
 
     # # yaw variables: [[yaw1, ind1], [yaw2, ind2], ...]
     # powers = ZDT1(config, layout).aimFunc()
     # print('Pop Power:', 1 / powers[:, 0], '\n')
     # print(f'Pop ObjVal Matrix: Shape = {powers.shape}\n', powers, '\n')
 
-    run_ZDT1()
+    # run_ZDT1()
 
     # config = {
     #     "num": 5,

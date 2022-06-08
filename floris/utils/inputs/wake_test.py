@@ -34,16 +34,18 @@ MIN_WS = 1.0
 MAX_WS = 8.0
 
 # Initialize FLORIS with the given input file via FlorisInterface
-fi = FlorisInterface("./jensen.yaml")
+fi = FlorisInterface("./gch.yaml")
 
 plot_height = 90.
-angles = np.array([[[20., 10., 0.]]])
+angles = np.array([[[30., 20., 0.]]])
 # Plot a horizatonal slice of the initial configuration
 horizontal_plane = fi.calculate_horizontal_plane(height=plot_height, yaw_angles=angles,
                                                  x_resolution=200, y_resolution=200,)
 visualize_cut_plane(horizontal_plane, ax=axarr, title="Initial setup", minSpeed=MIN_WS, maxSpeed=MAX_WS)
 
 turbine_powers = fi.get_turbine_powers() / 1000.
+print("Turbine Induction:", fi.get_turbine_ais())
+print("Turbine Thrust:", fi.get_turbine_Cts())
 print("Powers Shape: ", turbine_powers.shape, "\nTurbine Power: ", turbine_powers)
 print("Farm Power: ", np.sum(turbine_powers, axis=2)[0, 0])
 
