@@ -99,7 +99,7 @@ class YawedLayoutPower(object):#计算风场产能
     def config_reset(self, configs, **kwargs):
         self.config = {**self.default_config, **configs}
 
-    def initial(self, layout, **kwargs):
+    def initial(self, layout, yawed=None, **kwargs):
         self.params = self.config["param"]
         self.turb = self.config["turb"]
         self.velocity = self.models("velocity")
@@ -107,8 +107,8 @@ class YawedLayoutPower(object):#计算风场产能
         self.turbulence = self.models("turbulence")
         self.layout = layout
         self.wtnum = layout.shape[0]
-        self.yawed = kwargs.get("yawed",
-                                np.ones((self.wtnum, 2)) * [0., 0.15])
+        self.yawed = yawed if yawed is not None else \
+            np.array([[0., None] for _ in range(self.wtnum)])
         self.param = self.params_uniform(self.wtnum)
 
     def models(self, model):
@@ -130,13 +130,18 @@ class YawedLayoutPower(object):#计算风场产能
         power, speed = cpct_table['power'], cpct_table['wind_speed']
         return interp1d(speed, power, fill_value=(0.0, 1.0), bounds_error=False)
 
-    def yawed_power(self, layouts, yaweds, configs=None, **kwargs):
+    def yawed_power(self, layouts, yaweds=None, configs=None, **kwargs):
         if configs is not None:
             self.config_reset(configs, **kwargs)
-        assert (yaweds[:, 0] >= -30.).all() and (yaweds[:, 0] <= 30.).all(), \
-            "Yawed angle should be between -30 and 30"
-        assert (yaweds[:, 1] > 0.).all() and (yaweds[:, 1] < 0.5).all(), \
-            "Turbine induction should be between 0 and 0.5"
+        if yaweds is not None:
+            assert (yaweds[:, 0] >= -30.).all() and (yaweds[:, 0] <= 30.).all(), \
+                "Yawed angle should be between -30 and 30!"
+            if None in set(list(yaweds[:, 1])):
+                assert len(set(list(yaweds[:, 1]))) == 1, \
+                    "All turbine induction factor must be None!"
+            else:
+                assert (yaweds[:, 1] > 0.).all() and (yaweds[:, 1] < 0.5).all(), \
+                    "Turbine induction should be between 0 and 0.5!"
         self.initial(layouts, yawed=yaweds)
         return self.single_yawed()
 
@@ -152,11 +157,14 @@ class YawedLayoutPower(object):#计算风场产能
         for i, t in enumerate(wt_index):
             ytheta, a = self.yawed[t, 0], self.yawed[t, 1]
             cos_ytheta = np.cos(ytheta * np.pi / 180)
+            if a is None:
+                ct_from_curve = WindFarm.ct_curve(turbine_deficit[i, -1] * cos_ytheta)
+                a = (1 - np.sqrt(1 - ct_from_curve)) * 0.5
             eff_ct = 1 - (1 - 2 * a * cos_ytheta)**2
             eff_cp = 4 * a * (1 - a) ** 2 * 0.77 * cos_ytheta ** 1.88
             # c_p = self.turbine_cpct(self.param.iloc[t]["power_curve"])(turbine_deficit[i, -1])
-            turbine_power[i] = 0.5 * 1.225 * np.pi * self.param.iloc[t]["D_r"]**2 \
-                / 4. * turbine_deficit[i, -1]**3 * eff_cp * 1e-6
+            turbine_power[i] = np.clip(0.5 * 1.225 * np.pi * self.param.iloc[t]["D_r"]**2 \
+                / 4. * turbine_deficit[i, -1]**3 * eff_cp * 1e-6, 0., self.param.iloc[t]["P_rated"])
             if i < len(wt_index) - 1:
                 wake = self.velocity(wt_loc[t, :], eff_ct, self.param.iloc[t]["D_r"],
                                      self.param.iloc[t]["z_hub"], T_m=self.turbulence,
@@ -556,8 +564,9 @@ if __name__ == "__main__":
     # turbine position: [[x1, y1], [x2, y2], ...]
     # layout = layout_generator()
     layout = np.array([[0, 0], [400, 0]])
-    yawed_1 = np.array([[10, 0.2], [0, 0.3]])
-    yawed_2 = np.array([[20, 0.2], [0, 0.3]])
+    # yawed_1 = np.array([[0, None], [0, None]])
+    yawed_1 = None
+    yawed_2 = np.array([[20, None], [10, None]])
     # print(layout)
     # print(yawed)
     # thrust_power_test()
