@@ -18,6 +18,7 @@ title_font = {'family': 'Times New Roman', 'weight': 'bold', 'size': 15}
 
 
 def parameters(x_D, vel, turb, verbose=False, **kwargs):
+    # sourcery skip: merge-dict-assign, move-assign-in-block
     params = {}
     C = C_t[vel]
     
@@ -137,7 +138,7 @@ def Gaussian_single_plot(dist):
         r_D, added_I = Gaussian(d, )
         # print("added_I: ", added_I.shape, "\n", added_I)
         ax.plot(r_D, added_I, color=colors[i], linewidth=2.0,
-                linestyle="-", label="{}D".format(d))
+                linestyle="-", label=f"{d}D")
     plt.legend()
     plt.show()
 
@@ -150,12 +151,12 @@ def gauss_mod(x, params, x_D):
 def draw(ax, sowfa, gauss, r_D, i, **kwargs):
     if i == 5:
         ax.plot(sowfa, r_D, c='r', linestyle='-', lw=1.5,
-                label=f'SOWFA')
+                label="SOWFA")
         ax.plot(gauss, r_D, c='k', linestyle='--', lw=1.5,
-                label=f"Gaussian")
+                label="Gaussian")
         if kwargs["plot"] is not None:
             ax.plot(kwargs["plot"], r_D, c='b', linestyle='-', lw=2,
-                label=f"Modified Gaussian")
+                    label="Modified Gaussian")
     else:
         ax.plot(sowfa, r_D, c='r', linestyle='-', lw=1.5,)
         ax.plot(gauss, r_D, c='k', linestyle='--', lw=1.5,)
@@ -195,7 +196,7 @@ def load_dirname(vel, turb, yaw=0):
 
 def wake_plot(vel, turb, yaw=0, D=0.608, delta=30, type="total",
               verbose=False, psave=False, pshow=True, esave=False,
-              data=True, **kwargs):
+              data=True, **kwargs):  # sourcery skip: low-code-quality
     if data:
         data = data_package(vel, turb, gp.params(vel, turb, yaw))
     sowfa_path, gaussian_path = load_dirname(vel, turb, yaw)
@@ -205,31 +206,23 @@ def wake_plot(vel, turb, yaw=0, D=0.608, delta=30, type="total",
     title = f"Wake validation for added turbulence with U={vel}m/s, I={turb}%, Yaw={yaw}°"
     recorder = np.zeros((6, r_D.shape[0]))
     for i in range(5, 11):
-        if vel == 4:
-            sowfa_fname = f'x={i}D.csv'
-        else:
-            sowfa_fname = f'x={i}D-z=0.38.csv'
-        
+        sowfa_fname = f'x={i}D.csv' if vel == 4 else \
+            f'x={i}D-z=0.38.csv'
         sowfa = np.loadtxt(f"{sowfa_path}/{sowfa_fname}", skiprows=1,
                            delimiter=',', usecols=7, unpack=True)
         sowfa = sowfa**0.5 / vel if type == "total" \
             else np.sqrt((sowfa**0.5 / vel)**2 - (turb / 100)**2)
         sowfa_turb = sowfa * 100 + i * delta
-        
-        if not os.path.exists(gaussian_path):
-            gauss = Gaussian(5 + i, vel, turb)[2]
-        else:
-            gauss = np.loadtxt(gaussian_path, delimiter=',', usecols=i + 11,
-                           unpack=True)
+        gauss = np.loadtxt(gaussian_path, delimiter=',', usecols=i + 11,
+                            unpack=True) if os.path.exists(gaussian_path) \
+                                else Gaussian(5 + i, vel, turb)[2]
         gauss = gauss if type == "total" else np.sqrt(gauss**2 - (turb / 100)**2)
         gauss_turb = gauss * 100 + i * delta
-        
         modified_turb = None
-        if data:
-            if i in data.keys():
-                modified_turb = data[i][0] if type == "added" else data[i][1]
-                new_turb = modified_turb * 100 + i * delta
-                recorder[i - 5, :] = sowfa**2 - modified_turb**2
+        if data and i in data.keys():
+            modified_turb = data[i][0] if type == "added" else data[i][1]
+            new_turb = modified_turb * 100 + i * delta
+            recorder[i - 5, :] = sowfa**2 - modified_turb**2
         
         # print(i, sowfa_fname, i + 11)
         if verbose and i == 2:  # debug option
@@ -267,7 +260,7 @@ def error_plot(vel, turb, fitting=False, **kwargs):
     for i in range(errors.shape[0]):
         # print("added_I: ", added_I.shape, "\n", added_I)
         ax.plot(r_D, errors[i, :], color=colors[i], linewidth=1.5,
-                linestyle="-", label="{}D".format(i + 5))
+                linestyle="-", label=f"{i + 5}D")
     if fitting:
         params = gp.gauss_params[f"{vel}_{turb}"]
         ax.plot(r_D, gauss_mod(r_D, params), color="k", linewidth=2,
