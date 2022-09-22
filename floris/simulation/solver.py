@@ -224,6 +224,7 @@ def full_flow_sequential_solver(farm: Farm, flow_field: FlowField, flow_field_gr
     turbine_grid_farm.construct_rotor_diameters()
     turbine_grid_farm.construct_turbine_TSRs()
     turbine_grid_farm.construc_turbine_pPs()
+    turbine_grid_farm.construc_turbine_ref_density_cp_cts()
     turbine_grid_farm.construct_coordinates()
 
 
@@ -554,6 +555,7 @@ def full_flow_cc_solver(farm: Farm, flow_field: FlowField, flow_field_grid: Flow
     turbine_grid_farm.construct_rotor_diameters()
     turbine_grid_farm.construct_turbine_TSRs()
     turbine_grid_farm.construc_turbine_pPs()
+    turbine_grid_farm.construc_turbine_ref_density_cp_cts()
     turbine_grid_farm.construct_coordinates()
 
     turbine_grid = TurbineGrid(
@@ -562,6 +564,7 @@ def full_flow_cc_solver(farm: Farm, flow_field: FlowField, flow_field_grid: Flow
         wind_directions=turbine_grid_flow_field.wind_directions,
         wind_speeds=turbine_grid_flow_field.wind_speeds,
         grid_resolution=3,
+        time_series=turbine_grid_flow_field.time_series,
     )
     turbine_grid_farm.expand_farm_properties(
         turbine_grid_flow_field.n_wind_directions, turbine_grid_flow_field.n_wind_speeds, turbine_grid.sorted_coord_indices

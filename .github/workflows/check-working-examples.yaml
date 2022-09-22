@@ -36,10 +36,17 @@ jobs:
         for i in *.py; do
 
           # Skip these examples since they have additional dependencies
+<<<<<<< HEAD
           if [[ $i == *14* ]]; then
             continue
           fi
           if [[ $i == *18* ]]; then
+=======
+          if [[ $i == *15* ]]; then
+            continue
+          fi
+          if [[ $i == *19* ]]; then
+>>>>>>> NREL/main
             continue
           fi
 
