@@ -123,12 +123,12 @@ class PSO(SkoBase):
 
     def check_constraint(self, x):
         # gather all unequal constraint functions
-        for constraint_func in self.constraint_ueq:
-            # print(x.reshape((25, 2)))
-            # print(constraint_func(x))
-            if constraint_func(x) > 0:
-                return False
-        return True
+        # for constraint_func in self.constraint_ueq:
+        #     # print(x.reshape((25, 2)))
+        #     # print(constraint_func(x))
+        #     if constraint_func(x) > 0:
+        #         return False
+        return all(constraint_func(x) <= 0 for constraint_func in self.constraint_ueq)
 
     def update_V(self):
         r1 = np.random.rand(self.pop, self.n_dim)

@@ -1,3 +1,4 @@
+import copy
 import yaml
 import itertools
 import numpy as np
@@ -7,10 +8,12 @@ from pathlib import Path
 from scipy import integrate
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
+from matplotlib.ticker import MultipleLocator
 
 from floris.utilities import load_yaml, cosd
 
 from floris.utils.tools import eval_ops as eops
+from floris.utils.visual import property as ppt
 from floris.utils.tools import farm_config as fconfig
 from floris.utils.modules.optimization.wflo_layout import LayoutPower
 
@@ -247,7 +250,8 @@ class BastankhahWake(object):#BP尾流模型
     def wake_velocity(self, inflow, x, y, z):
         A, B = self.deficit_constant(self.wake_sigma_Dr(x / self.d_rotor))
         v_deficit = A * np.exp(B * ((z - self.z_hub)**2 + y**2))#速度损失值
-        return inflow * (1 - v_deficit)
+        # return inflow * (1 - v_deficit)
+        return v_deficit
 
     @staticmethod
     def wake_intersection(d_spanwise, r_wake, down_d_rotor):
@@ -307,6 +311,82 @@ def Frandsen(C_t, I_0, x_D): ##湍流模型Frandsen
 
 def Sum_Squares(deficits, i, **kwargs):
     return np.sqrt(np.sum(deficits[:i, i]**2))#平方和尾流叠加模型
+
+
+def single_wake_profile_plot(vel, turb, yaw, C_t, H_hub=70, D_r=80):
+    height = H_hub
+    point_num = 100
+    distance = np.arange(2, 13, 2)
+    width_range = (-3, 3)
+
+    baseline_deficit = np.zeros((len(distance), point_num))
+    # baseline_deficit = [np.loadtxt(f'Lin_Exp_{str(i)}d.txt', skiprows=4) for i in distance]
+
+    points = np.ones((len(distance), point_num, 3))
+    points[:, :, 0] = points[:, :, 0] * distance[:, None]
+    points[:, :, 1] = points[:, :, 1] * np.linspace(
+        width_range[0], width_range[1], point_num) * D_r
+    points[:, :, 2] = points[:, :, 2] * height
+
+    wake_model = BastankhahWake((0., 0.), C_t, D_r, H_hub,
+                                turb, yaw, T_m=Frandsen, I_w=turb)
+    deflection = np.vectorize(wake_model.wake_offset)(yaw, distance * D_r)
+    wake_points = copy.deepcopy(points)
+    wake_points[:, :, 1] = wake_points[:, :, 1] - deflection[:, None] * np.sign(yaw)
+    deficit = np.array([np.vectorize(wake_model.wake_velocity)(
+        vel, wake_points[i, :, 0], wake_points[i, :, 1], wake_points[i, :, 2]) \
+            for i in range(len(distance))])
+
+    fig, ax = plt.subplots(1, len(distance), sharey=True,
+                           figsize=(len(distance) * 3, 6), dpi=100)
+    for i, axi in enumerate(ax.flatten()):
+        if i in [0, ]:
+            axi.set_ylabel('y/d', ppt.font20t)
+            axi.set_ylim([0, 2.5])
+            axi.yaxis.set_major_locator(MultipleLocator(0.5))
+            axi.text(2.5, -1.25, 'Velocity deficit', va='top', ha='left',
+                     fontdict=ppt.font18, )
+        axi.plot(deficit[i, :], points[i, :, 1] / D_r,
+                 c='r', lw=2., ls='-', label='BP')
+        if np.all(baseline_deficit):
+            axi.plot(baseline_deficit[i][:, 0],
+                     baseline_deficit[i][:, 1],
+                     c="w", lw=0., label='LES', markersize=8,
+                     marker="o", markeredgecolor='k',
+                     markeredgewidth=1.)
+        axi.set_xlim([-0.1, 0.95])
+        axi.set_xticks([0, 0.2, 0.4, 0.6, 0.8])
+        axi.set_xticklabels(['0', '0.2', '0.4', '0.6', '0.8'])
+        # axi.xaxis.set_major_locator(MultipleLocator(0.2))
+        axi.set_ylim([-1, 1.5])
+        axi.set_yticks([-1, -0.5, 0., 0.5, 1, 1.5])
+        axi.set_yticklabels(['-1', '-0.5', '0', '0.5', '1', '1.5'])
+        # axi.yaxis.set_major_locator(MultipleLocator(0.5))
+        axi.axhline(0.5, color='k', alpha=0.7, linestyle='--', linewidth=1.)
+        axi.axhline(-0.5, color='k', alpha=0.8, linestyle='--', linewidth=1.)
+        # axi.text(0.7, 0.9, f'x/d = {distance[i]}', va='top', ha='left',
+        #          fontdict=ppt.font18t, transform=axi.transAxes, )
+        axi.tick_params(labelsize=15, colors='k', direction='in',
+                        top=True, bottom=True, left=True, right=True)
+        axi.grid(True, alpha=0.4)
+        axi.set_title(f'x/d = {distance[i]}', ppt.font18t)
+        if i not in [0, 3, 4, 7]:
+            plt.setp(axi.get_yticklines(), visible=False)
+        elif i in [0, 4]:
+            axi.tick_params(right=False)
+        elif i in [3, 7]:
+            axi.tick_params(left=False)
+        tick_labs = axi.get_xticklabels() + axi.get_yticklabels()
+        [tick_lab.set_fontname('Times New Roman') for tick_lab in tick_labs]
+    ax1 = ax.flatten()[1]
+    handles, labels = ax1.get_legend_handles_labels()
+    ax1.legend(handles, labels, loc="upper left", prop=ppt.font18, columnspacing=0.5,
+               edgecolor='None', frameon=False, labelspacing=0.4, bbox_to_anchor=(1.55, 1.19),
+               bbox_transform=ax1.transAxes, ncol=2, handletextpad=0.5)
+    plt.subplots_adjust(wspace=0., hspace=0.25)
+    # plt.savefig("../outputs/Lin_velocity.png", format='png', dpi=300, bbox_inches='tight')
+    plt.show()
+
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
@@ -563,18 +643,18 @@ if __name__ == "__main__":
 
     # turbine position: [[x1, y1], [x2, y2], ...]
     # layout = layout_generator()
-    layout = np.array([[0, 0], [400, 0]])
+    # layout = np.array([[0, 0], [400, 0]])
     # yawed_1 = np.array([[0, None], [0, None]])
-    yawed_1 = None
-    yawed_2 = np.array([[20, None], [10, None]])
+    # yawed_1 = None
+    # yawed_2 = np.array([[20, None], [10, None]])
     # print(layout)
     # print(yawed)
     # thrust_power_test()
 
-    powers_1 = YawedLayoutPower(config).yawed_power(layout, yawed_1, config)
-    print(powers_1)
-    powers_2 = YawedLayoutPower(config).yawed_power(layout, yawed_2, config)
-    print(powers_2)
+    # powers_1 = YawedLayoutPower(config).yawed_power(layout, yawed_1, config)
+    # print(powers_1)
+    # powers_2 = YawedLayoutPower(config).yawed_power(layout, yawed_2, config)
+    # print(powers_2)
 
     # # yaw variables: [[yaw1, ind1], [yaw2, ind2], ...]
     # powers = ZDT1(config, layout).aimFunc()
@@ -614,3 +694,4 @@ if __name__ == "__main__":
     # powers = upow.LayoutPower(config).yawed_data("output/21_4_23")
     # print(powers)
 
+    single_wake_profile_plot(10., 0.077, 20., 0.5)

@@ -66,7 +66,7 @@ def horizontal_velocity_profile(output=False):
                bbox_transform=ax1.transAxes, ncol=3, handletextpad=0.5)
     plt.subplots_adjust(wspace=0., hspace=0.25)
     if output:
-        plt.savefig(f"../outputs/Lin_velocity.png", format='png', dpi=300, bbox_inches='tight')
+        plt.savefig("../outputs/Lin_velocity.png", format='png', dpi=300, bbox_inches='tight')
     plt.show()
 
 
@@ -124,7 +124,7 @@ def horizontal_turbulence_profile(output=False):
                bbox_transform=ax1.transAxes, ncol=3, handletextpad=0.5)
     plt.subplots_adjust(wspace=0., hspace=0.25)
     if output:
-        plt.savefig(f"../outputs/Lin_turbulence.png", format='png', dpi=300, bbox_inches='tight')
+        plt.savefig("../outputs/Lin_turbulence.png", format='png', dpi=300, bbox_inches='tight')
     plt.show()
 
 
