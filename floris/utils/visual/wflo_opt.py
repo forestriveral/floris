@@ -58,10 +58,10 @@ def wf_layout_plot(layout=None, baseline=None, **kwargs):
     fig = plt.figure(dpi=200)
     ax = fig.add_subplot(111)
     dist = kwargs.get("normal", 80.)
-    legend_loc = 'upper right' if not kwargs.get("opt_data", False) else 'upper left'
+    legend_loc = 'upper left' if kwargs.get("opt_data", False) else 'upper right'
     if layout is not None:
-        opt_label = "Optimized WTs" if not kwargs.get("opt_data", False) else \
-            f"Optimized WTs: LCOE = XX €/MWh, Power = XX MW, CF = XX %"
+        opt_label = "Optimized WTs: LCOE = XX €/MWh, Power = XX MW, CF = XX %" \
+            if kwargs.get("opt_data", False) else "Optimized WTs"
         ax.plot(layout[:, 0] / dist,
                 layout[:, 1] / dist,
                 linestyle="-",
@@ -82,8 +82,8 @@ def wf_layout_plot(layout=None, baseline=None, **kwargs):
     if baseline is not None:
         # marker = 'o' if layout is None else 'x'
         # alpha = 1. if layout is None else 0.6
-        ref_label = "Baseline WTs" if not kwargs.get("ref_data", False) else \
-            f"Baseline WTs: LCOE = XX €/MWh, Power = XX MW, CF = XX %"
+        ref_label = "Baseline WTs: LCOE = XX €/MWh, Power = XX MW, CF = XX %" \
+            if kwargs.get("ref_data", False) else "Baseline WTs"
         ax.plot(baseline[:, 0] / dist,
                 baseline[:, 1] / dist,
                 linestyle="-",
@@ -127,7 +127,7 @@ def wf_layout_plot(layout=None, baseline=None, **kwargs):
         print(f"Optimized/Baseline Layout Save Done ({fpath}).")
         plt.show()
     else:
-        print(f"No Layout to be plotted.")
+        print("No Layout to be plotted.")
 
 
 def wd_power_plot(wds, powers, capacity, **kwargs):
@@ -350,6 +350,8 @@ def table_legend_plot(table, show=True, save=True, spath=None):
 
 
 
-if __name__ == "__main__":
-    pass
+
+
+# if __name__ == "__main__":
+#     pass
 

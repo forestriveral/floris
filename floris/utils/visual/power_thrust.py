@@ -127,4 +127,4 @@ class Horns_rev_1(object):
 if __name__ == "__main__":
     power, thrust = Horns_rev_1.pow_curve, Horns_rev_1.ct_curve,
     curve_show((power, thrust))
-    print(file_dir)
+    # print(file_dir)

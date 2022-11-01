@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from scipy import signal
 
 from floris.tools import FlorisInterface
-from floris.tools.optimization.scipy.yaw import YawOptimization
+from floris.tools.optimization.yaw_optimization.yaw_optimizer_scipy import YawOptimization
 
 from floris.utils.visual import property as ppt
 from floris.utils.visual import yaw_opt as yopt
@@ -126,7 +126,7 @@ class YawSimulator(object):
 
     def convolution(self, ind, weighted=None):
         scope = self.conv if ind != 0 else 0.
-        weights = weighted if weighted else np.ones(self.conv.shape)
+        weights = weighted or np.ones(self.conv.shape)
         assert weights.shape == self.conv.shape
         return np.mean(self.wd[ind - scope] * weights)
 
@@ -279,7 +279,7 @@ class YawSimulator(object):
             np.zeros((num, len(wd))), np.zeros((num, len(wd)))
         control_point, yaw_flag, yaw_speed = True, np.full(num, 1.), np.ones(num) * speed
         for i in range(len(wd)):
-            control_point = True if (i % ratio == 0) else False
+            control_point = i % ratio == 0
             awd, aws = average_wind(wd, ws, i)
             if not control:
                 yaw[:, i] = np.zeros((num))
@@ -350,14 +350,16 @@ class YawSimulator(object):
     def data_unpack(self, ):
         pass
 
-    def get_data(self, sim='baseline', info='power', tid=[]):
+    def get_data(self, sim='baseline', info='power', tid=None):
+        if tid is None:
+            tid = []
         assert np.any(self.results.values[:, 2:] != 0.), \
             "Empty results package. Please run simulation or load results file first!"
         sim = [sim] if isinstance(sim, str) else sim
         info = [info] if isinstance(info, str) else info
         tid = [tid] if isinstance(tid, int) else tid
         # print(sim, info, tid)
-        cols = ['obj', 'turbine', 'yaw', 'power'] if not info else info
+        cols = info or ['obj', 'turbine', 'yaw', 'power']
         baseline_data, control_data = [], []
         if 'baseline' in sim:
             baseline_data += [f'baseline_{col}' for col in cols]
@@ -390,9 +392,9 @@ class YawSimulator(object):
 
     def turbine_show(self, wd, ws, yaw, time=None, optimal=False, ax=None):
         # plot the layout of yawed wind turbines in the specific time point or real time
-        wd = wd if not time else self.wd[time]
-        ws = ws if not time else self.ws[time]
-        yaw = yaw if not time else self.yaw_offset[time]
+        wd = self.wd[time] if time else wd
+        ws = self.ws[time] if time else ws
+        ws = self.ws[time] if time else ws
         if optimal:
             power_diff = self.results['power'].values - self.results['baseline_power'].values
             optimal_index = np.argmax(power_diff)
@@ -438,7 +440,7 @@ def simple_yaw_simulator(num, ratio=30, speed=6.):
         np.zeros((2, num, len(wd))), np.zeros((2, num, len(wd)))
     control_point, yaw_flag, yaw_speed = True, np.full(num, 1.), np.ones(num) * speed
     for i in range(len(wd)):
-        control_point = True if i % ratio == 0 else False
+        control_point = i % ratio == 0
         awd, aws = average_wind(wd, ws, i)
         yaw[:, :, i] = yaw_lookup_table(awd, aws) if control_point else yaw[:, :, i - 1]
         target[0, :, i] = wd[i] + yaw[0, :, i] if control_point else target[0, :, i - 1]

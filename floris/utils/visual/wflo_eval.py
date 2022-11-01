@@ -122,10 +122,9 @@ def wf_power_eval(legend, data, **kwargs):
                 linestyle=line_styles[i], label=label)
     winds = wind_range_from_label(legend[0])[0]
     title = 'Distribution of the normalized Horns Rev wind farm power ouput'
-    ax = general_axes_property(ax, 'Wind Direction(degree)', 'Normalized Power',
-                               (winds[0] - (len(winds) / 10),
-                                winds[-1] + (len(winds) / 10)),
-                               (0.35, 1.05), int(len(winds) / 10), title)
+    ax = ax = general_axes_property(ax, 'Wind Direction(degree)', 'Normalized Power',
+                                    (winds[0] - (len(winds) / 10), winds[-1] + (len(winds) / 10)),
+                                    (0.35, 1.05), len(winds) // 10, title)
     if kwargs.get("psave", False):
         plt.savefig("output/{}.png".format(kwargs["psave"]), format='png',
                     dpi=300, bbox_inches='tight')
@@ -187,14 +186,13 @@ def wind_range_from_label(label):
 
 
 def power_plot_saved_data(fname, extract=None):
-    if isinstance(fname, list):
-        data = pd.concat([
-            pd.read_csv(f) for f in map(lambda x: f"output/{x}", fname)], axis=1)
-        if (extract is not None) and (isinstance(extract, list)):
-            data = data[extract]
-        return data
-    else:
-        return pd.read_csv(fname)[extract] if extract is not None else pd.read_csv(fname)
+    if not isinstance(fname, list):
+         return pd.read_csv(fname)[extract] if extract is not None else pd.read_csv(fname)
+    data = pd.concat([
+        pd.read_csv(f) for f in map(lambda x: f"output/{x}", fname)], axis=1)
+    if extract is None or not (isinstance(extract, list)):
+         return pd.read_csv(fname)[extract] if extract is not None else pd.read_csv(fname)
+    return data[extract]
 
 
 def general_axes_property(axes, *args):
@@ -230,5 +228,5 @@ def powers_table_format(powers, cost):
     return table
 
 
-if __name__ == "__main__":
-    pass
+# if __name__ == "__main__":
+#     pass

@@ -52,10 +52,7 @@ class LayoutPower(object):
         self.capacity = self.param["P_rated"].values
 
     def uniform_check(self, params):
-        if isinstance(params, list):
-            return False if len(params) > 1 else True
-        else:
-            return True
+        return len(params) <= 1 if isinstance(params, list) else True
 
     def layout_check(self):
         pass
@@ -104,18 +101,17 @@ class LayoutPower(object):
 
     def one_wakes(self, layout, theta, mprocess=False, **kwargs):
         self.initialize(layout, **kwargs)
-        if mprocess:
-            deficits_calculator = self.deficits
-            args = list(zip([theta], [self.v_point], [self.vel_model], [self.comb_model],
-                            [self.turb_model], [self.turb], [self.param], [self.layout]))
-            result = self.pool.map_async(deficits_calculator, args); result.wait()
-            return result
-        else:
-            return self.deficits(theta, self.layout)
+        if not mprocess:
+             return self.deficits(theta, self.layout)
+        deficits_calculator = self.deficits
+        args = list(zip([theta], [self.v_point], [self.vel_model], [self.comb_model],
+                        [self.turb_model], [self.turb], [self.param], [self.layout]))
+        result = self.pool.map_async(deficits_calculator, args)
+        result.wait()
+        return result
 
     def powers(self, deficits, params, **kwargs):
-        pow_curve = eops.params_loader(params["power_curve"]).pow_curve \
-            if not self.uniform else self.pow_curve
+        pow_curve = self.pow_curve if self.uniform else eops.params_loader(params["power_curve"]).pow_curve
         wt_power = np.vectorize(pow_curve)(self.v_point[:, None] * (1. - deficits))
         no_wake_wt_power = \
             np.vectorize(pow_curve)(self.v_point[:, None] * np.ones((deficits.shape)))

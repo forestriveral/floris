@@ -1,4 +1,5 @@
 import time
+import itertools
 import numpy as np
 import pandas as pd
 # import multiprocessing as mp
@@ -26,19 +27,16 @@ class HornsRev1(object):
         # Wind turbines labelling
         c_n, r_n = 8, 10
         labels = []
-        for i in range(1, r_n + 1):
-            for j in range(1, c_n + 1):
-                l = "c{}_r{}".format(j, i)
-                labels.append(l)
+        for i, j in itertools.product(range(1, r_n + 1), range(1, c_n + 1)):
+            l = "c{}_r{}".format(j, i)
+            labels.append(l)
         # Wind turbines location generating  wt_c1_r1 = (0., 4500.)
         locations = np.zeros((c_n * r_n, 2))
         num = 0
-        for i in range(r_n):
-            for j in range(c_n):
-                loc_x = 0. + 68.589 * j + 7 * 80. * i
-                loc_y = 4500. - j * 558.616
-                locations[num, :] = [loc_x, loc_y]
-                num += 1
+        for num, (i, j) in enumerate(itertools.product(range(r_n), range(c_n))):
+            loc_x = 0. + 68.589 * j + 7 * 80. * i
+            loc_y = 4500. - j * 558.616
+            locations[num, :] = [loc_x, loc_y]
         return locations, np.array(labels)
 
     def turbine_transform(self, theta):
@@ -122,13 +120,11 @@ class HornsRev1(object):
                 assert isinstance(direction, (float, int)), \
                     "Invalid wind direction parameters for centered power calculation!"
                 powers = self.centered_power(configs[i])
-            elif isinstance(direction, (tuple, list)):
+            else:
                 assert float(sector) == 0., \
                     "Wind sector must be ZERO for ranged power calculation !"
                 powers = self.ranged_power(configs[i])
                 self.farm_power = True
-            else:
-                raise ValueError("Invalid configuration type!")
             cost_time = round(time.time() - time_start, 3)
             print(f"...running time of {case}: {cost_time} sec")
             self.powers[case] = powers

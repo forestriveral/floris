@@ -1,5 +1,6 @@
 import os
 import sys
+import itertools
 import geatpy as ea
 import numpy as np
 import matplotlib.pyplot as plt
@@ -173,12 +174,9 @@ def assembled_optimizer():
     fnames = ["5_Jen_F", "10_Jen_F", "15_Jen_F", "20_Jen_F", "25_Jen_F", "30_Jen_F",
               "35_Jen_F", "40_Jen_F", "45_Jen_F", "50_Jen_F", "55_Jen_F", "60_Jen_F",]
     n = 0
-    for tim in tims:
-        for num in nums:
-            config["tim"], config["num"] = tim, num
-            EAOptimizer(config).run(fnames[n])
-            # print(tim, num, fnames[n])
-            n += 1
+    for n, (tim, num) in enumerate(itertools.product(tims, nums)):
+        config["tim"], config["num"] = tim, num
+        EAOptimizer(config).run(fnames[n])
 
 
 
@@ -346,15 +344,13 @@ class HybridOptimizer(object):
 
     def config_check(self, config):
         if config['stage'] == 1:
-            if isinstance(config['opt'], list):
-                if len(config['opt']) != 1:
-                    raise RuntimeError('Invalid opt in config')
+            if isinstance(config['opt'], list) and len(config['opt']) != 1:
+                raise RuntimeError('Invalid opt in config')
         elif config['stage'] == 2:
             if isinstance(config['opt'], str):
                 raise RuntimeError('Invalid opt in config')
-            if isinstance(config['opt'], list):
-                if len(config['opt']) != 2:
-                    raise RuntimeError('Invalid opt in config')
+            if isinstance(config['opt'], list) and len(config['opt']) != 2:
+                raise RuntimeError('Invalid opt in config')
         else:
             raise RuntimeError('Invalid stage in config')
 
@@ -414,15 +410,14 @@ def assembled_optimizer(config):
     # winds =['horns', 'average', 'single']
     # nums = [25, ]
     winds =['horns', ]
-    for n in nums:
-        for w in winds:
-            config["num"], config["tag"] = n, str(n)
-            fname = f"output/21_6_30/Jen_{n}_mos"
-            try:
-                print(f'\n******************* Case {n} with Mosetti**********************')
-                HybridOptimizer(config).run(outdir=fname, analyse=True)
-            except:
-                continue
+    for n, _ in itertools.product(nums, winds):
+        config["num"], config["tag"] = n, str(n)
+        fname = f"output/21_6_30/Jen_{n}_mos"
+        try:
+            print(f'\n******************* Case {n} with Mosetti**********************')
+            HybridOptimizer(config).run(outdir=fname, analyse=True)
+        except Exception:
+            continue
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #

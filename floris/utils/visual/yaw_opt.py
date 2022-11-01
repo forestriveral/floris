@@ -44,7 +44,7 @@ def time_history_plot(wd, ws, step, save=None):
     ax2.axhline(y=np.mean(ws), color='k', alpha=0.5,
                 linestyle='--', linewidth=2)
     ax2.set_ylabel('Speed (m/s)', ppt.font15)
-    ax2.set_xlabel(f'Time (min)', ppt.font15)
+    ax2.set_xlabel('Time (min)', ppt.font15)
     ax2.set_xticks(stamp)
     ax2.set_xticklabels([f'{t / 60:.0f}' for t in stamp])
     ax2.tick_params(labelsize=15, colors='k', direction='in',
@@ -268,12 +268,9 @@ def optimal_yaw_turbine_plot(fi, wd, ws, yaws, ax=None):
 
 
 def time_formator(seqs):
-    if np.max(seqs) < 600:
-        return seqs, "s"
-    else:
-        return seqs / 60, "min"
+    return (seqs, "s") if np.max(seqs) < 600 else (seqs / 60, "min")
 
 
 
-if __name__ == "__main__":
-    pass
+# if __name__ == "__main__":
+#     pass

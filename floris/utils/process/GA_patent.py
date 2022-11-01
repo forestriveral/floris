@@ -1,6 +1,7 @@
 from tkinter import W
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 from floris.utils.visual import property as ppt
 
@@ -13,7 +14,6 @@ def optimization_boxplot():
     covariance = np.array([[0.15, 0., 0.],[0., 0.1, 0.],[0., 0., 0.05]])
     gaussian = np.random.multivariate_normal(means, covariance, (10, ))
     print(gaussian)
-    # x = np.random.randint(10, 100, size=(10, 3))  # 随机生成5行9列 [10, 100]之间的数
     # label = ['遗传', '粒子群', '融合']
     label = ['GA', 'PSO', 'Hybrid']
     color = ['k', 'b', 'r']
@@ -64,17 +64,17 @@ def optimization_boxplot():
     tick_labs = ax.get_xticklabels() + ax.get_yticklabels()
     [tick_lab.set_fontname('Times New Roman') for tick_lab in tick_labs]
 
-    plt.show()  # 显示图片
+    plt.show()
 
 
 def optimization_layout(layout=None, baseline=None, **kwargs):
     fig = plt.figure(dpi=200)
     ax = fig.add_subplot(111)
     dist = kwargs.get("normal", 80.)
-    legend_loc = 'upper right' if not kwargs.get("opt_data", False) else 'upper left'
+    legend_loc = 'upper left' if kwargs.get("opt_data", False) else 'upper right'
     if layout is not None:
-        opt_label = "Optimized WTs" if not kwargs.get("opt_data", False) else \
-            f"Optimized WTs: LCOE = XX €/MWh, Power = XX MW, CF = XX %"
+        opt_label = "Optimized WTs: LCOE = XX €/MWh, Power = XX MW, CF = XX %" \
+            if kwargs.get("opt_data", False) else "Optimized WTs"
         ax.plot(layout[:, 0] / dist,
                 layout[:, 1] / dist,
                 linestyle="-",
@@ -95,8 +95,8 @@ def optimization_layout(layout=None, baseline=None, **kwargs):
     if baseline is not None:
         # marker = 'o' if layout is None else 'x'
         # alpha = 1. if layout is None else 0.6
-        ref_label = "Baseline WTs" if not kwargs.get("ref_data", False) else \
-            f"Baseline WTs: LCOE = XX €/MWh, Power = XX MW, CF = XX %"
+        ref_label = "Baseline WTs: LCOE = XX €/MWh, Power = XX MW, CF = XX %" \
+            if kwargs.get("ref_data", False) else "Baseline WTs"
         ax.plot(baseline[:, 0] / dist,
                 baseline[:, 1] / dist,
                 linestyle="-",
@@ -140,7 +140,7 @@ def optimization_layout(layout=None, baseline=None, **kwargs):
         print(f"Optimized/Baseline Layout Save Done ({fpath}).")
         plt.show()
     else:
-        print(f"No Layout to be plotted.")
+        print("No Layout to be plotted.")
 
 
 

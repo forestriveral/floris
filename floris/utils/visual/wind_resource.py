@@ -208,9 +208,9 @@ def winds_pdf(bins=(3, 5), speeds=(4, 25), pdf=None, name=None,
                         dpi=400, bbox_inches='tight')
         plt.show()
 
-    name = 'horns' if not name else name
+    name = name or 'horns'
     if kwargs.get("output", False) == "wind":
-        winds = dict()
+        winds = {}
         winds['l-1'], winds['theta_l-1'], winds['theta_l'] = \
             np.arange(w_point.shape[0]), w_bin[:-1], w_bin[1:]
         winds['k'], winds['c'], winds['w_l-1'] = \
