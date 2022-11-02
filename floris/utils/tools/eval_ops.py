@@ -100,16 +100,15 @@ def wt_power_reorder(index, result):
 
 
 def target_power_extract(powers, targets):
-        power_data = copy.deepcopy(powers)
-        if targets.ndim == 2:
-            tmp = np.zeros(targets.shape)
-            for j in range(power_data.shape[0]):
-                for i in range(targets.shape[0]):
-                    tmp[i, :] = power_data[j, :][targets[i, :] - 1]
-                power_data[j, :targets.shape[1]] = np.mean(tmp, axis=0)
-            return power_data[:, :targets.shape[1]]
-        else:
-            return power_data[:, targets - 1]
+    power_data = copy.deepcopy(powers)
+    if targets.ndim != 2:
+        return power_data[:, targets - 1]
+    tmp = np.zeros(targets.shape)
+    for j in range(power_data.shape[0]):
+        for i in range(targets.shape[0]):
+            tmp[i, :] = power_data[j, :][targets[i, :] - 1]
+        power_data[j, :targets.shape[1]] = np.mean(tmp, axis=0)
+    return power_data[:, :targets.shape[1]]
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
@@ -122,51 +121,50 @@ def wake_model_load(name, model):
         "Model type must be specific!"
     if name is None:
         return None
-    else:
-        from floris.utils.models.velocity import Bastankhah, Frandsen, Ishihara, \
-            Jensen, Larsen, XieArcher
-        from floris.utils.models.combination.VelocityCombination import Geometric_Sum, \
-            Linear_Sum, Energy_Balance, Sum_Squares
-        from floris.utils.models.turbulence.Uniform import Quart, Crespo, Frandsen_turb, \
-            Larsen_turb, Tian, Gao, IEC
-        from floris.utils.models.evaluation.EnergyCost import COE, LCOE
+    from floris.utils.models.velocity import Bastankhah, Frandsen, Ishihara, \
+        Jensen, Larsen, XieArcher
+    from floris.utils.models.combination.VelocityCombination import Geometric_Sum, \
+        Linear_Sum, Energy_Balance, Sum_Squares
+    from floris.utils.models.turbulence.Uniform import Quart, Crespo, Frandsen_turb, \
+        Larsen_turb, Tian, Gao, IEC
+    from floris.utils.models.evaluation.EnergyCost import COE, LCOE
 
-        VelocityModels = {'Bastankhah': Bastankhah.BastankhahWake,
-                          'Frandsen': Frandsen.FrandsenWake,
-                          'Ishihara': Ishihara.IshiharaWake,
-                          'Jensen': Jensen.JensenWake,
-                          'Larsen': Larsen.LarsenWake,
-                          'XieArcher': XieArcher.XieArcherWake, }
+    VelocityModels = {'Bastankhah': Bastankhah.BastankhahWake,
+                        'Frandsen': Frandsen.FrandsenWake,
+                        'Ishihara': Ishihara.IshiharaWake,
+                        'Jensen': Jensen.JensenWake,
+                        'Larsen': Larsen.LarsenWake,
+                        'XieArcher': XieArcher.XieArcherWake, }
 
-        CombinationModels = {'GS': Geometric_Sum,
-                             'LS': Linear_Sum,
-                             'EB': Energy_Balance,
-                             'SS': Sum_Squares, }
+    CombinationModels = {'GS': Geometric_Sum,
+                            'LS': Linear_Sum,
+                            'EB': Energy_Balance,
+                            'SS': Sum_Squares, }
 
-        TurbulenceModels = {'quart': Quart,
-                            'Crespo': Crespo,
-                            'Frandsen': Frandsen_turb,
-                            'Larsen': Larsen_turb,
-                            'tian': Tian,
-                            'gao': Gao,
-                            'IEC': IEC,
-                            None: None}
+    TurbulenceModels = {'quart': Quart,
+                        'Crespo': Crespo,
+                        'Frandsen': Frandsen_turb,
+                        'Larsen': Larsen_turb,
+                        'tian': Tian,
+                        'gao': Gao,
+                        'IEC': IEC,
+                        None: None}
 
-        CostModels = {'COE': COE,
-                      'LCOE': LCOE, }
+    CostModels = {'COE': COE,
+                    'LCOE': LCOE, }
 
-        ModelsDict = {'velocity': VelocityModels,
-                      'combination': CombinationModels,
-                      'turbulence': TurbulenceModels,
-                      'cost': CostModels, }
+    ModelsDict = {'velocity': VelocityModels,
+                    'combination': CombinationModels,
+                    'turbulence': TurbulenceModels,
+                    'cost': CostModels, }
 
-        return ModelsDict[model][name]
+    return ModelsDict[model][name]
 
 
 def wake_overlap(d_spanwise, r_wake, down_d_rotor):
     if d_spanwise <= r_wake - (down_d_rotor / 2):
-            return 1.
-    elif d_spanwise > r_wake - (down_d_rotor / 2) and d_spanwise < r_wake + (down_d_rotor / 2):
+        return 1.
+    elif d_spanwise < r_wake + (down_d_rotor / 2):
         theta_w = np.arccos(
             (r_wake**2 + d_spanwise**2 - (down_d_rotor / 2)**2) / (2 * r_wake * d_spanwise))
         theta_r = np.arccos(((down_d_rotor / 2)**2 + d_spanwise **
@@ -180,8 +178,8 @@ def wake_overlap(d_spanwise, r_wake, down_d_rotor):
 
 def wake_overlap_ellipse(d_spanwise, r_y_wake, r_z_wake, down_d_rotor):
     if d_spanwise <= r_y_wake - (down_d_rotor / 2):
-            return 1.
-    elif d_spanwise > r_y_wake - (down_d_rotor / 2) and d_spanwise < r_y_wake + (down_d_rotor / 2):
+        return 1.
+    elif d_spanwise < r_y_wake + (down_d_rotor / 2):
         y_axis = quadratic_solver(1. - ( r_z_wake**2 / r_y_wake**2),
                                   - 2 * d_spanwise, d_spanwise**2 + r_z_wake**2 - 0.25 * down_d_rotor**2)[1]
         ellipse_radius = lambda y: np.sqrt(y**2 + (down_d_rotor / 2)**2 - (y - d_spanwise)**2)
@@ -263,7 +261,6 @@ def quadratic_solver(a, b, c):
             print("Solution: x1=x2=%.3f" % (x1))
             return x1, x2
         else:
-            pass
             print("Unsolvable")
             return None
 
@@ -287,8 +284,8 @@ def size_calculation():
     # c: 562.811 | 7.04d
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
-    # random_curve()
-    pass
+#     # random_curve()
+#     pass
 

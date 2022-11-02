@@ -61,7 +61,7 @@ def deficits_interpolation(deficits, nums=24):
 
 
 def results_packing(fname, subpath=None, path="output", default="solution"):
-    today = str(datetime.datetime.today()).split(" ")[0].split("-")
+    today = str(datetime.datetime.now()).split(" ")[0].split("-")
     date = "_".join([today[0][2:], today[1].strip("0"), today[2]])
     dir_name = f"{path}/{date}" if subpath is None else f"{path}/{subpath}"
     if not os.path.exists(dir_name):
@@ -85,7 +85,7 @@ def json_save(data, path):
 def time_formator(time):
     if time < 60:
         return time, "s"
-    elif time >= 60 and time <= 3600:
+    elif time <= 3600:
         return time / 60, "m"
     else:
         return time / 3600, "h"

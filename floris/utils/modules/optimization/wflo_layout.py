@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from floris.utils.tools import eval_ops as eops
+from floris.utils.tools import opt_ops as oops
 from floris.utils.tools import farm_config as fconfig
 from floris.utils.visual import wflo_eval as vweval
 from floris.utils.visual import wflo_opt as vwopt
@@ -23,7 +24,7 @@ class LayoutPower(object):
         self.turb = configs["turb"]
         self.bins = (self.vbins, self.wbins)
         self.uniform = self.uniform_check(configs["param"])
-        self.wd_cdf = eops.wind_speed_dist()[1]
+        self.wd_cdf = oops.wind_speed_dist()[1]
 
         self.wind_name = configs["wind"]
         self.cost_name = configs["cost"]
@@ -41,7 +42,7 @@ class LayoutPower(object):
         self.yawed = kwargs.get("yawed",np.tile(np.array([0., None]), (self.wtnum, 1)))
         if not kwargs.get("params", None):
             self.param = self.params_uniform(self.wtnum)
-            self.pow_curve = eops.params_loader(self.param["power_curve"][0]).pow_curve
+            self.pow_curve = oops.params_loader(self.param["power_curve"][0]).pow_curve
         else:
             self.param = self.params_nonuniform(kwargs["params"])
         self.speed = (np.min(self.param["v_in"]), np.max(self.param["v_out"]))
@@ -58,8 +59,8 @@ class LayoutPower(object):
         pass
 
     def params_uniform(self, num):
-        params = eops.params_loader(self.params).params().values
-        cols = eops.params_loader(self.params).params().columns
+        params = oops.params_loader(self.params).params().values
+        cols = oops.params_loader(self.params).params().columns
         return pd.DataFrame(np.repeat(params, num, axis=0), columns=cols)
 
     def params_nonuniform(self, params):   # TODO
@@ -67,13 +68,13 @@ class LayoutPower(object):
         return None
 
     def data_load(self, data):
-        return eops.winds_loader(data, self.wind_name, self.bins, self.speed)
+        return oops.winds_loader(data, self.wind_name, self.bins, self.speed)
 
     def model_load(self, name, model):
-        return eops.find_and_load_model(name, model)
+        return oops.find_and_load_model(name, model)
 
     def discretization(self, bins, speeds):
-        return eops.winds_discretization(bins, speeds)
+        return oops.winds_discretization(bins, speeds)
 
     def unpack_nonuniform(self, ):
         pass
@@ -111,7 +112,7 @@ class LayoutPower(object):
         return result
 
     def powers(self, deficits, params, **kwargs):
-        pow_curve = self.pow_curve if self.uniform else eops.params_loader(params["power_curve"]).pow_curve
+        pow_curve = self.pow_curve if self.uniform else oops.params_loader(params["power_curve"]).pow_curve
         wt_power = np.vectorize(pow_curve)(self.v_point[:, None] * (1. - deficits))
         no_wake_wt_power = \
             np.vectorize(pow_curve)(self.v_point[:, None] * np.ones((deficits.shape)))
@@ -167,7 +168,7 @@ class LayoutPower(object):
 
     def deficits(self, theta, layout, *args):
         # theta, speeds, wm, wsm, tim, turb, params, layout = args
-        wt_loc = eops.coordinate_transform(layout, theta)
+        wt_loc = oops.coordinate_transform(layout, theta)
         wt_index = eops.wind_turbines_sort(wt_loc)
         assert wt_index.shape[0] == wt_loc.shape[0]
         deficits = np.zeros((len(self.v_point), len(wt_index)))
@@ -182,7 +183,7 @@ class LayoutPower(object):
                 yaw_reduction = np.cos(yaw_t * np.pi / 180)**(1.88 / 3.0)
                 turbine_deficit[z, i, -1] = turbine_deficit[z, i, -1] * yaw_reduction
                 thrust = 4 * induction_t * (1 - induction_t) if induction_t is not None else \
-                    eops.params_loader(self.param.iloc[t]["ct_curve"]).ct_curve(turbine_deficit[z, i, -1])
+                    oops.params_loader(self.param.iloc[t]["ct_curve"]).ct_curve(turbine_deficit[z, i, -1])
                 if i < len(wt_index) - 1:
                     wake = self.velocity_model(wt_loc[t, :], thrust, self.param.iloc[t]["D_r"],
                                                self.param.iloc[t]["z_hub"], T_m=self.turb_model,
@@ -204,7 +205,7 @@ class LayoutPower(object):
 
 def analysis(path="solution", baseline="horns", result=None, config=None, **kwargs):
     result = result if isinstance(result, dict) else \
-        eops.json_load(f"{path}/{result}.json")
+        oops.json_load(f"{path}/{result}.json")
     config = config or result['config']
     wf = LayoutPower(config)
     if wf.uniform:
@@ -224,10 +225,10 @@ def analysis(path="solution", baseline="horns", result=None, config=None, **kwar
         'WTs number is not matching. Please check!'
     print("\nWind Turbine Num: ", wt_num)
     if baseline in ['horns', ]:
-        baseline = eops.params_loader(baseline).baseline(wt_num)
+        baseline = oops.params_loader(baseline).baseline(wt_num)
     if (config["opt"] == "ga" and config["stage"] != 2) and config["grid"]:
-        _, grids = eops.layout2grids([0, 0], [63, 48.89], config["grid"])
-        layout = eops.grids2layout(layout, grids)
+        _, grids = oops.layout2grids([0, 0], [63, 48.89], config["grid"])
+        layout = oops.grids2layout(layout, grids)
     layout = layout[np.argsort(layout[:, 1]), :] * 80.
     layout = layout - np.array([0, 589])
     cost, _ = wf.test(layout, baseline, param=param, path=path, **kwargs)

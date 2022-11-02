@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import itertools
 
 from floris.utils.visual.wflo_opt import wf_layout_plot
 
@@ -28,32 +29,29 @@ class Horns(object):
         # Wind turbines labelling
         c_n, r_n = 8, 10
         labels = []
-        for i in range(1, r_n + 1):
-            for j in range(1, c_n + 1):
-                l = "c{}_r{}".format(j, i)
-                labels.append(l)
+        for i, j in itertools.product(range(1, r_n + 1), range(1, c_n + 1)):
+            l = "c{}_r{}".format(j, i)
+            labels.append(l)
         # Wind turbines location generating  wt_c1_r1 = (0., 4500.)
         locations = np.zeros((c_n * r_n, 2))
         num = 0
-        for i in range(r_n):
-            for j in range(c_n):
-                loc_x = 0. + 68.589 * j + 7 * 80. * i
-                loc_y = 3911. - j * 558.616
-                locations[num, :] = [loc_x, loc_y]
-                num += 1
+        for num, (i, j) in enumerate(itertools.product(range(r_n), range(c_n))):
+            loc_x = 0. + 68.589 * j + 7 * 80. * i
+            loc_y = 3911. - j * 558.616
+            locations[num, :] = [loc_x, loc_y]
         return np.array(locations)
 
     @classmethod
     def params(cls):
-        params = dict()
-        params["D_r"] = [80.]
-        params["z_hub"] = [70.]
-        params["v_in"] = [4.]
-        params["v_rated"] = [15.]
-        params["v_out"] = [25.]
-        params["P_rated"] = [2.]  # 2WM
-        params["power_curve"] = ["horns"]
-        params["ct_curve"] = ["horns"]
+        params = {}
+        params = {"D_r": [80.0],
+                  "z_hub": [70.0],
+                  "v_in": [4.0],
+                  "v_rated": [15.0],
+                  "v_out": [25.0],
+                  "P_rated": [2.0],
+                  "power_curve": ["horns"],
+                  "ct_curve": ["horns"]}
         return pd.DataFrame(params)
 
     @classmethod
@@ -123,31 +121,28 @@ def grid_baseline(grids, wtnum, seed=None):
 
 
 def baseline_layout(Nt, bounds=None, arrays=None, grids=None, **kwargs):
-    default_arrays = {9:(3, 3), 16:(4, 4), 25:(5, 5), 30:(5, 6), 36:(6, 6),
-                      42:(6, 7), 49:(7, 7), 56:(7, 8), 64:(8, 8), 72:(8, 9),
-                      80:(8, 10)}
     if grids is not None:
         return grid_baseline(grids, Nt)
+    if not arrays:
+        default_arrays = {9:(3, 3), 16:(4, 4), 25:(5, 5), 30:(5, 6),
+                          36:(6, 6), 42:(6, 7), 49:(7, 7), 56:(7, 8),
+                          64:(8, 8), 72:(8, 9), 80:(8, 10)}
+        if (Nt is None) or (Nt not in default_arrays.keys()):
+            print(f"No default baseline layout of {Nt}")
+            return None
+        wt_array = default_arrays[Nt]
     else:
-        if not arrays:
-            if (Nt is None) or (Nt not in default_arrays.keys()):
-                print(f"No default baseline layout of {Nt}")
-                return None
-            wt_array = default_arrays[Nt]
-        else:
-            wt_array = arrays
-        Nh, Nv = wt_array[0], wt_array[1]
-        assert Nt == Nh * Nv, 'Nt should be equal to Nh * Nv'
-        bounds = bounds if bounds is not None else \
-            np.array([[0, 5040, 5040, 0], [3911, 3911, 0, 0]])
-        xs = np.linspace(bounds[0, 0], bounds[0, 1], Nh)
-        ys = np.linspace(bounds[1, 2], bounds[1, 1], Nv)
-        xs, ys = np.meshgrid(xs, ys[::-1])
-        xy = np.concatenate((xs.ravel()[None, :], ys.ravel()[None, :])).transpose(1, 0)
-        if not kwargs.get('spacing', False):
-            return xy
-        else:
-            return xy, [xs[0, 1] - xs[0, 0], ys[0, 0] - ys[1, 0]]
+        wt_array = arrays
+    Nh, Nv = wt_array[0], wt_array[1]
+    assert Nt == Nh * Nv, 'Nt should be equal to Nh * Nv'
+    bounds = bounds if bounds is not None else \
+        np.array([[0, 5040, 5040, 0], [3911, 3911, 0, 0]])
+    xs = np.linspace(bounds[0, 0], bounds[0, 1], Nh)
+    ys = np.linspace(bounds[1, 2], bounds[1, 1], Nv)
+    xs, ys = np.meshgrid(xs, ys[::-1])
+    xy = np.concatenate((xs.ravel()[None, :], ys.ravel()[None, :])).transpose(1, 0)
+    return (xy, [xs[0, 1] - xs[0, 0], ys[0, 0] - ys[1, 0]]) \
+        if kwargs.get('spacing', False) else xy
 
 
 if __name__ == "__main__":

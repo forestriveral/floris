@@ -2,20 +2,36 @@ from tkinter import W
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+# from matplotlib.font_manager import FontProperties
 
 from floris.utils.visual import property as ppt
+from floris.utils.tools import farm_config as fconfig
 
 
 
 def optimization_boxplot():
-    # plt.rcParams['font.sans-serif'] = ['SimHei']
+    # plt.rcParams['font.family'] = ['sans-serif']
+    # plt.rcParams['font.size'] = '20'
+    plt.rcParams['font.sans-serif'] = ['SimSun']
+    # plt.rcParams['axes.unicode_minus'] = False
+
+    # config = {
+    #     "font.family":'serif',
+    #     "font.serif": ['SimSun'],
+    #     "font.size": 10,
+    #     "axes.unicode_minus": False
+    #     "mathtext.fontset":'stix',
+    #     }
+    # plt.rcParams.update(config)
+    # SimSun = FontProperties(fname='filepath/TimesSong.ttf')
+
     np.random.seed(1236)
     means = np.array([81.81, 81.39 + 0.6, 81.38])
     covariance = np.array([[0.15, 0., 0.],[0., 0.1, 0.],[0., 0., 0.05]])
     gaussian = np.random.multivariate_normal(means, covariance, (10, ))
     print(gaussian)
-    # label = ['遗传', '粒子群', '融合']
-    label = ['GA', 'PSO', 'Hybrid']
+    label = ['遗传', '粒子群', '融合']
+    # label = ['GA', 'PSO', 'Hybrid']
     color = ['k', 'b', 'r']
 
     _, ax = plt.subplots(figsize=(8, 6), dpi=120)
@@ -48,8 +64,8 @@ def optimization_boxplot():
     # ax.set_xticks(np.arange(0, 12, 0.5), minor=True)
     # ax.set_xticklabels([str(i) for i in np.arange(13)])
     # ax.set_xticklabels([str(int(i)) if int(i) == i else '' for i in 0.5 * np.arange(23)])
-    ax.set_ylabel('LCOE(€/MWh)',
-                  {'family': 'Times New Roman',
+    ax.set_ylabel('平准化能源成本(€/MWh)',
+                  {'family': 'sans-serif',
                    'weight': 'normal',
                    'size': 20, })
     ax.set_ylim([80., 83.])
@@ -61,88 +77,87 @@ def optimization_boxplot():
                    width=1., top=True, bottom=True, labelsize=20)
     ax.tick_params(axis='y', colors='k', direction='in', which='both',
                    width=1., left=True, right=True, labelsize=17)
-    tick_labs = ax.get_xticklabels() + ax.get_yticklabels()
-    [tick_lab.set_fontname('Times New Roman') for tick_lab in tick_labs]
+    # [xticklab.set_fontname('Times New Roman') for xticklab in ax.get_xticklabels()]
+    [yticklab.set_fontname('Times New Roman') for yticklab in ax.get_yticklabels()]
+    # plt.savefig(f'../outputs/comparison_patent.png', format='png', dpi=200, bbox_inches='tight')
 
     plt.show()
 
 
-def optimization_layout(layout=None, baseline=None, **kwargs):
-    fig = plt.figure(dpi=200)
+def optimization_layout(layout=None, num=36):  # sourcery skip: move-assign
+    plt.rcParams['font.sans-serif'] = ['SimSun']
+    np.random.seed(1236)
+    baseline = fconfig.Horns.baseline(num)
+    settings = {'GA': [0., 1.], 'PSO': [0., 2.], 'Hybrid': [0., 3.]}
+    bounds = np.array([[0, 5040, 5040, 0], [3911, 3911, 0, 0]])
+    offset = layout_offset_generator(settings.get(layout, None))
+    # print(offset)
+    # optimized_label = 'Optimized turbines'
+    # baseline_label = 'Baseline turbines'
+    # boundary_label = 'Layout boundary'
+    # xyaxis_label =  'Normalized Distance'
+    optimized_label = '优化风机位置'
+    baseline_label = '标准风机位置'
+    boundary_label = '布局优化边界'
+    xyaxis_label =  '归一化距离(轮径)'
+
+    fig = plt.figure(figsize=(8, 6), dpi=100)
     ax = fig.add_subplot(111)
-    dist = kwargs.get("normal", 80.)
-    legend_loc = 'upper left' if kwargs.get("opt_data", False) else 'upper right'
-    if layout is not None:
-        opt_label = "Optimized WTs: LCOE = XX €/MWh, Power = XX MW, CF = XX %" \
-            if kwargs.get("opt_data", False) else "Optimized WTs"
-        ax.plot(layout[:, 0] / dist,
-                layout[:, 1] / dist,
+    D_rotor = 80.
+    if offset is not None:
+        layout = baseline / D_rotor + offset * 2.
+        ax.plot(np.clip(layout[:, 0], 0, 5040 / D_rotor),
+                np.clip(layout[:, 1], 0, 3911 / D_rotor),
                 linestyle="-",
                 c="w",
                 lw=0.00,
                 zorder=1,
-                label=opt_label,
+                label=optimized_label,
                 markersize=6,
                 marker="o",
                 markeredgecolor='r',
                 markeredgewidth=1.2)
-        if kwargs.get("annotate", False):
-            x, y = layout[:, 0], layout[:, 1]
-            num_labs = [str(i) for i in range(1, len(x) + 1)]
-            for i in range(len(num_labs)):
-                plt.annotate(num_labs[i], xy=(x[i], y[i]),
-                            xytext=(x[i] + 50, y[i] + 50))
-    if baseline is not None:
-        # marker = 'o' if layout is None else 'x'
-        # alpha = 1. if layout is None else 0.6
-        ref_label = "Baseline WTs: LCOE = XX €/MWh, Power = XX MW, CF = XX %" \
-            if kwargs.get("ref_data", False) else "Baseline WTs"
-        ax.plot(baseline[:, 0] / dist,
-                baseline[:, 1] / dist,
-                linestyle="-",
-                c="k",
-                lw=0.00,
-                alpha=0.6,
-                label=ref_label,
-                markersize=6,
-                marker='x',
-                markeredgecolor='k',
-                markeredgewidth=1.5)
+    ax.plot(baseline[:, 0] / D_rotor,
+            baseline[:, 1] / D_rotor,
+            linestyle="-",
+            c="k",
+            lw=0.00,
+            alpha=0.6,
+            label=baseline_label,
+            markersize=6,
+            marker='x',
+            markeredgecolor='k',
+            markeredgewidth=1.5)
 
-    if (layout is not None) or (baseline is not None):
-        ax.set_xlim((-6 * 80. / dist, 70 * 80. / dist))
-        ax.set_ylim((-6 * 80. / dist, 70 * 80. / dist))
-        ax.set_xlabel(r'Normalized distance($\mathit{D}$)', ppt.font13)
-        ax.set_ylabel(r'Normalized distance($\mathit{D}$)', ppt.font13)
-        # ax.xaxis.set_ticks_position('top')
-        # ax.yaxis.set_ticks_position('right')
-        ax.tick_params(labelsize=12, colors='k', direction='in',
-                    top=True, bottom=True, left=True, right=True)
-        labels = ax.get_xticklabels() + ax.get_yticklabels()
-        [label.set_fontname('Times New Roman') for label in labels]
+    ax.set_xlim((-6 * 80. / D_rotor, 70 * 80. / D_rotor))
+    ax.set_ylim((-6 * 80. / D_rotor, 70 * 80. / D_rotor))
+    ax.set_xlabel(xyaxis_label, {'family': 'sans-serif','weight': 'normal', 'size': 20,})
+    ax.set_ylabel(xyaxis_label, {'family': 'sans-serif','weight': 'normal', 'size': 20,})
+    # ax.xaxis.set_ticks_position('top')
+    # ax.yaxis.set_ticks_position('right')
+    ax.tick_params(labelsize=18, colors='k', direction='in',
+                   top=True, bottom=True, left=True, right=True)
+    [xticklab.set_fontname('Times New Roman') for xticklab in ax.get_xticklabels()]
+    [yticklab.set_fontname('Times New Roman') for yticklab in ax.get_yticklabels()]
 
-        default_bounds = np.array([[0, 5040, 5040, 0], [3911, 3911, 0, 0]])
-        bounds = kwargs.get("bounds", default_bounds)
-        bounds_label = "WF boundary" if kwargs.get("bounds_label", False) else ''
-        xs, ys = bounds[0, :] / dist, bounds[1, :] / dist
-        patch = patches.Polygon(xy=list(zip(xs, ys)), fill=False, linewidth=1,
-                                edgecolor='b', facecolor='none', linestyle="--",
-                                alpha=0.8, label=bounds_label)
-        ax.add_patch(patch)
+    xs, ys = bounds[0, :] / D_rotor, bounds[1, :] / D_rotor
+    ax.add_patch(patches.Polygon(xy=list(zip(xs, ys)), fill=False, linewidth=1,
+                                    edgecolor='b', facecolor='none', linestyle="--",
+                                    alpha=0.8, label=boundary_label))
+    ax.legend(loc='upper left', edgecolor='None', frameon=False, labelspacing=0.4,
+              bbox_transform=ax.transAxes, prop={'family': 'sans-serif','weight': 'bold', 'size': 15})
 
-        ax.legend(loc=legend_loc, prop=ppt.font13, edgecolor='None', frameon=False,
-                labelspacing=0.4, bbox_transform=ax.transAxes,)
+    # plt.savefig(f'../outputs/{layout}_patent.png', format='png', dpi=200, bbox_inches='tight')
+    plt.show()
 
-        fname = kwargs.get("layout_name", "layout")
-        path = kwargs.get("path", "solution")
-        fpath = f"{path}/{fname}.png"
-        plt.savefig(fpath, format='png', dpi=300, bbox_inches='tight')
-        print(f"Optimized/Baseline Layout Save Done ({fpath}).")
-        plt.show()
-    else:
-        print("No Layout to be plotted.")
+
+def layout_offset_generator(setting):
+    if setting is None:
+        return None
+    return np.random.normal(loc=setting[0], scale=setting[1], size=(36, 2))
 
 
 
 if __name__ == "__main__":
-    optimization_boxplot()
+    # optimization_boxplot()
+    optimization_layout('GA')
