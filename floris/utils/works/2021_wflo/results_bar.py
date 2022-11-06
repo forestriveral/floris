@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.legend import Legend
 
-from floris.utils.visual import property as ppt
+from floris.utils.visual import plot_property as ppt
 
 
 opt_lcoe_25 = [76.90, 85.07, 80.87]

@@ -3,7 +3,7 @@ import time
 import numpy as np
 from scipy import integrate
 
-from floris.utils.tools import eval_ops as vops
+from floris.utils.tools import power_calc_ops_old as vops
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #

@@ -5,9 +5,9 @@ import pandas as pd
 # import multiprocessing as mp
 # from multiprocessing import Pool as ProcessPool
 
-from floris.utils.tools import eval_ops as eops
-from floris.utils.tools import paper_data as pdata
-from floris.utils.visual import wflo_eval as wfeval
+from floris.utils.tools import power_calc_ops_old as power_ops
+from floris.utils.tools import paper_data_extractor as paper_data
+from floris.utils.visual import power_calc_plot_old as power_plot
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
@@ -40,13 +40,13 @@ class HornsRev1(object):
         return locations, np.array(labels)
 
     def turbine_transform(self, theta):
-        return eops.coordinate_transform(self.layout, theta)
+        return power_ops.coordinate_transform(self.layout, theta)
 
     def turbine_init(self):
         return np.tile(np.array([{"D_r": 80., "z_hub": 70.}]), (80, ))
 
     def model_init(self, name, model):
-        return eops.wake_model_load(name, model)
+        return power_ops.wake_model_load(name, model)
 
     def turbine_power(self, vel):
         return 0.17819 * vel**5 - 6.5198 * vel**4 + 90.623 * vel**3 - \
@@ -58,12 +58,12 @@ class HornsRev1(object):
         return -0.005694 * vel**2 + 0.06203 * vel + 0.637
 
     def layout_show(self, theta=0, annotate=True):
-        return wfeval.layout_plot(self.turbine_transform(theta), annotate)
+        return power_plot.layout_plot(self.turbine_transform(theta), annotate)
 
     def single_power(self, config, direction=None):
         theta = direction or config["theta"]
         wt_loc = self.turbine_transform(theta)
-        wt_index = eops.wind_turbines_sort(wt_loc)
+        wt_index = power_ops.wind_turbines_sort(wt_loc)
         assert len(wt_index) == wt_loc.shape[0]
         turbine_deficit = np.full((len(wt_index), len(wt_index) + 2), None)
         turbine_turb = np.full((len(wt_index), len(wt_index) + 2), None)
@@ -86,7 +86,7 @@ class HornsRev1(object):
                     np.max(turbine_turb[:i + 1, i + 1])**2 + config["turb"]**2)
                 turbine_deficit[i + 1, -1] = float(config["inflow"]) * (1 - total_deficit)
                 turbine_deficit[i + 1, -2] = total_deficit
-        return self.turbine_power(eops.wt_power_reorder(wt_index, turbine_deficit[:, -1]))
+        return self.turbine_power(power_ops.wt_power_reorder(wt_index, turbine_deficit[:, -1]))
 
     def centered_power(self, config):
         center, sector = float(config["theta"]), float(config["sector"])
@@ -100,13 +100,13 @@ class HornsRev1(object):
         calculated_direction = range(int(config["theta"][0]), int(config["theta"][1]), step)
         wf_powers = np.zeros(int((config["theta"][1] - config["theta"][0]) / step))
         for i, theta_i in enumerate(calculated_direction):
-            wf_powers[i] = eops.normalized_wf_power(self.single_power(config, direction=theta_i))
+            wf_powers[i] = power_ops.normalized_wf_power(self.single_power(config, direction=theta_i))
         return wf_powers
 
     def model_power(self, configs, output=None, verbose=True):
-        assert isinstance(configs, (eops.CaseConfig, dict)), \
+        assert isinstance(configs, (power_ops.CaseConfig, dict)), \
             "Configuration info must be a DataFrame or dict object!"
-        configs = eops.CaseConfig(configs) if isinstance(configs, dict) else configs
+        configs = power_ops.CaseConfig(configs) if isinstance(configs, dict) else configs
         assert len(configs.cases) != 0, "Case parameters needed!"
         if len(self.powers.columns) != 0:
             self.powers = pd.DataFrame()
@@ -133,14 +133,14 @@ class HornsRev1(object):
             self.powers.to_csv(f"../outputs/{output}.csv")
 
     def power_plot(self, config, target=None, **kwargs):
-        self.model_power(eops.CaseConfig(config) if isinstance(config, dict) else config)
+        self.model_power(power_ops.CaseConfig(config) if isinstance(config, dict) else config)
         if not self.farm_power:
             assert target is not None and target.all(), \
                 "The targets turbine inside wind farm need to be specified!"
-            turbine_power = eops.target_power_extract(self.powers.values.T, target)
-            wfeval.wt_power_eval(self.powers.columns, turbine_power, **kwargs)
+            turbine_power = power_ops.target_power_extract(self.powers.values.T, target)
+            power_plot.wt_power_eval(self.powers.columns, turbine_power, **kwargs)
         else:
-            wfeval.wf_power_eval(self.powers.columns, self.powers.values.T, **kwargs)
+            power_plot.wf_power_eval(self.powers.columns, self.powers.values.T, **kwargs)
 
     def WP2015_Fig_6(self, configs, psave=None, dsave=None, show=True):
         direction, sector = configs["theta"], configs["sector"]
@@ -149,7 +149,7 @@ class HornsRev1(object):
             direction = direction[0]
         assert direction in (270., 222., 312.), \
             "Only data of 270/222/312 wind direction available!"
-        turbine_target, turbine_power = pdata.WP_2015.Fig_6(int(direction), sector)
+        turbine_target, turbine_power = paper_data.WP_2015.Fig_6(int(direction), sector)
         self.power_plot(configs, target=turbine_target, ref=turbine_power,
                         psave=psave, dsave=dsave, show=show)
 

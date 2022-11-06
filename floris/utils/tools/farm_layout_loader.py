@@ -1,4 +1,4 @@
-import os, fnmatch, pathlib
+import os, itertools, pathlib
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -67,17 +67,14 @@ class WindFarmLayout(object):
 def HornsRev1_generator(): # HR1
         c_n, r_n = 8, 10
         labels = []
-        for i in range(1, r_n + 1):
-            for j in range(1, c_n + 1):
-                l = "c{}_r{}".format(j, i)
-                labels.append(l)
+        for i, j in itertools.product(range(1, r_n + 1), range(1, c_n + 1)):
+            l = "c{}_r{}".format(j, i)
+            labels.append(l)
         # Wind turbines location generating  wt_c1_r1 = (0., 4500.)
         layout = np.zeros((c_n * r_n, 2))
         num = 0
-        for i in range(r_n):
-            for j in range(c_n):
-                layout[num, :] = [0. + 68.589 * j + 7 * 80. * i, 3911. - j * 558.616]
-                num += 1
+        for num, (i, j) in enumerate(itertools.product(range(r_n), range(c_n))):
+            layout[num, :] = [0. + 68.589 * j + 7 * 80. * i, 3911. - j * 558.616]
         # np.savetxt('./layouts/Horns Rev 1.txt', np.around(layout, 2))
         return (list(np.around(layout, 2)[:, 0]), list(np.around(layout, 2)[:, 1]))
 

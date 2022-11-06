@@ -15,5 +15,5 @@ def json_load(path):
     return config
 
 
-if __name__ == "__main__":
-    pass
+# if __name__ == "__main__":
+#     pass

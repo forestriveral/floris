@@ -28,7 +28,7 @@ class ADMSimulator(object):
 
         # turbine operation conditions
         self.v_0 = 8.  # m/s
-        self.tsr = 8.89  if not tsr else tsr# tip speed ratio
+        self.tsr = tsr or 8.89  # tip speed ratio
         self.omega = (self.tsr * self.v_0 * 60) / (2 * np.pi * self.R)  # rotation speed (RPM)
         self.theta_pt = 0.  # blade pitch angle (degree)
 
@@ -144,8 +144,8 @@ class ADMSimulator(object):
         ax2.legend(loc='best')
 
         ax3 = fig.add_subplot(133)
-        ax3.plot(self.blade_points, self.a_axial(self.blade_points), c='k', ls='-', lw=2., label=f'Axial')
-        ax3.plot(self.blade_points, self.a_tange(self.blade_points), c='b', ls='-', lw=2., label=f'Tangential')
+        ax3.plot(self.blade_points, self.a_axial(self.blade_points), c='k', ls='-', lw=2., label='Axial')
+        ax3.plot(self.blade_points, self.a_tange(self.blade_points), c='b', ls='-', lw=2., label='Tangential')
         ax3.set_xlim([0, 1.1])
         ax3.legend(loc='best')
 

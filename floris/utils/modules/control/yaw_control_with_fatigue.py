@@ -12,10 +12,12 @@ from matplotlib.ticker import MultipleLocator
 
 from floris.utilities import load_yaml, cosd
 
-from floris.utils.tools import eval_ops as eops
-from floris.utils.visual import property as ppt
-from floris.utils.tools import farm_config as fconfig
-from floris.utils.modules.optimization.wflo_layout import LayoutPower
+from floris.utils.visual import plot_property as ppt
+from floris.utils.tools import power_calc_ops_old as power_ops
+from floris.utils.tools import layout_opt_ops_old as layout_ops
+from floris.utils.tools import horns_farm_config as horns_config
+
+from floris.utils.modules.optimization.layout_power_old import LayoutPower
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 #                                     MAIN                                     #
@@ -534,7 +536,7 @@ class YawedOpt(object):
         BestIndi.save("solution/Results") # 把最优个体的信息保存到文件中
         """=================================输出结果======================="""
         print(f'Evaluation times:{myAlgorithm.evalsNum}')
-        print('Elapsed time %s %s' % eops.time_formator(myAlgorithm.passTime))
+        print('Elapsed time %s %s' % layout_ops.time_formator(myAlgorithm.passTime))
         if BestIndi.sizes != 0:
             yawed_data = pd.read_csv(
                 "../solution/Results/Phen.csv",
@@ -562,7 +564,7 @@ def yawed_case_run(N, pop=None, maxg=None):
         "combination": "SS",
         "turbulence": None,
         "superposition": None,}
-    layout_5, layout_9, layout_25 = eops.yawed_layout_generator()
+    layout_5, layout_9, layout_25 = power_ops.yawed_layout_generator()
     YawedOpt(config, eval(f"layout_{N}")).solution()
 
 

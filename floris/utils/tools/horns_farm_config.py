@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import itertools
 
-from floris.utils.visual.wflo_opt import wf_layout_plot
+from floris.utils.visual import layout_opt_plot_old as layout_plot
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 #                               WIND_FARMS                                     #
@@ -148,4 +148,4 @@ def baseline_layout(Nt, bounds=None, arrays=None, grids=None, **kwargs):
 if __name__ == "__main__":
     layout = Horns.baseline(49)
     print(layout.shape)
-    wf_layout_plot(baseline=layout, layout_name='baseline_49')
+    layout_plot(baseline=layout, layout_name='baseline_49')

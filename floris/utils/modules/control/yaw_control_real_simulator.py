@@ -7,8 +7,8 @@ from scipy import signal
 from floris.tools import FlorisInterface
 from floris.tools.optimization.yaw_optimization.yaw_optimizer_scipy import YawOptimization
 
-from floris.utils.visual import property as ppt
-from floris.utils.visual import yaw_opt as yopt
+from floris.utils.visual import plot_property as ppt
+from floris.utils.visual import yaw_control_real_simulator_plot as yaw_plot
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 #                                 YAW_EVALUATION                               #
@@ -133,8 +133,8 @@ class YawSimulator(object):
     def time_history(self, origin=False, save=None):
         # plot the origin wind speed and direction data
         if origin:
-            yopt.time_history_plot(self.origin_wd, self.origin_ws, 0.1)
-        return yopt.time_history_plot(self.wd, self.ws, self.data_T * self.data_scale,
+            yaw_plot.time_history_plot(self.origin_wd, self.origin_ws, 0.1)
+        return yaw_plot.time_history_plot(self.wd, self.ws, self.data_T * self.data_scale,
                                       save=save)
 
     def power_calculation(self, yaw_offset, no_wake=False):
@@ -325,7 +325,7 @@ class YawSimulator(object):
                           self.num_t * 2., cpower * factor)
         bpower, _ = self.power_calculation(np.zeros(len(self.wd)))
         # no_wake_power, _ = self.power_calculation(np.zeros(len(self.wd)), no_wake=True)
-        return yopt.yaw_power_plot(np.array([bpower, cpower]), self.wd,
+        return yaw_plot.yaw_power_plot(np.array([bpower, cpower]), self.wd,
                                    self.data_T * self.data_scale,
                                    no_wake=None, save=save,)
 
@@ -377,17 +377,17 @@ class YawSimulator(object):
 
     def baseline_plot(self, real=False, turbine=None, ax=None):
         # plot the yawing offset curve simulated without positive control
-        return yopt.yaw_baseline_plot(self, ax=ax)
+        return yaw_plot.yaw_baseline_plot(self, ax=ax)
 
     def control_plot(self, real=False, turbine=None, ax=None):
         # plot the yawing offset curve simulated with positive control
-        return yopt.yaw_control_plot(self, ax=ax)
+        return yaw_plot.yaw_control_plot(self, ax=ax)
 
     def power_plot(self, real=False, turbine=None, save=None, ax=None):
         # plot the yawing power curve simulated with or without positive control
         power = self.results[self.get_data(['control', 'baseline'], ['power'])].values.T
         no_wake_power, _ = self.power_calculation(np.zeros(len(self.wd)), no_wake=True)
-        return yopt.yaw_power_plot(power, self.wd, self.delt, no_wake=no_wake_power,
+        return yaw_plot.yaw_power_plot(power, self.wd, self.delt, no_wake=no_wake_power,
                                    save=save, ax=ax)
 
     def turbine_show(self, wd, ws, yaw, time=None, optimal=False, ax=None):
@@ -398,8 +398,8 @@ class YawSimulator(object):
         if optimal:
             power_diff = self.results['power'].values - self.results['baseline_power'].values
             optimal_index = np.argmax(power_diff)
-            return yopt.optimal_yaw_turbine_plot()
-        return yopt.yaw_turbine_plot(self.fi, wd, ws, yaw, ax=ax)
+            return yaw_plot.optimal_yaw_turbine_plot()
+        return yaw_plot.yaw_turbine_plot(self.fi, wd, ws, yaw, ax=ax)
 
     def gif_export(self, ):
         # export the gif file of yaw offset, yawed power and turbines yawing in the real time

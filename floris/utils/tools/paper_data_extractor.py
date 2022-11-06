@@ -5,7 +5,7 @@ from pathlib import Path
 
 from attrs import define, field
 
-from floris.utils.tools.layout_loader import WindFarmLayout as WFL
+from floris.utils.tools.farm_layout_loader import WindFarmLayout as WFL
 
 file_dir = os.path.dirname(os.path.abspath(__file__))
 baseline_data_dir = Path(file_dir).parent / 'data/baselines/'
@@ -25,14 +25,14 @@ class WP_2015(object):
     @classmethod
     def baseline(cls, fig_id='Fig_6', **kwargs):
         default_baseline = {'Fig_6': cls.Fig_6,}
-        if fig_id in default_baseline.keys():
+        if fig_id in default_baseline:
             return default_baseline[fig_id](**kwargs)
         else:
             raise ValueError(f"Data of {fig_id} is not supported")
 
     @classmethod
     def Fig_6(cls, **kwargs):
-        layout = kwargs.get('layout', None)
+        layout = kwargs.get('layout')
         assert layout in WFL.get_layout_name('Horns Rev 1')
         direction, sector = kwargs['direction'], kwargs['sector']
         def turbine_array(direction):
@@ -126,7 +126,7 @@ class AV_2018(object):
     def baseline(cls, fig_id='Fig_4_6', **kwargs):
         default_baseline = {'Fig_4_6': cls.Fig_4_6,
                             'Fig_10_14': cls.Fig_10_14,}
-        if fig_id in default_baseline.keys():
+        if fig_id in default_baseline:
             return default_baseline[fig_id](**kwargs)
         else:
             raise ValueError(f"Data of {fig_id} is not supported")

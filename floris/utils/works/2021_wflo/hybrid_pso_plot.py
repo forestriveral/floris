@@ -2,7 +2,7 @@ import numpy as np
 from scipy import interpolate
 import matplotlib.pyplot as plt
 
-from floris.utils.tools import operation as ops
+from floris.utils.tools import layout_opt_ops_old as ops
 
 
 font1 = {'family': 'Times New Roman',

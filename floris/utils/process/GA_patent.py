@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 # from matplotlib.font_manager import FontProperties
 
-from floris.utils.visual import property as ppt
-from floris.utils.tools import farm_config as fconfig
+from floris.utils.visual import plot_property as ppt
+from floris.utils.tools import horns_farm_config as horns_config
 
 
 
@@ -13,6 +13,7 @@ def optimization_boxplot():
     # plt.rcParams['font.family'] = ['sans-serif']
     # plt.rcParams['font.size'] = '20'
     plt.rcParams['font.sans-serif'] = ['SimSun']
+    # plt.rcParams['font.sans-serif'] = ['Minion-Pro', 'SimSun']
     # plt.rcParams['axes.unicode_minus'] = False
 
     # config = {
@@ -26,12 +27,19 @@ def optimization_boxplot():
     # SimSun = FontProperties(fname='filepath/TimesSong.ttf')
 
     np.random.seed(1236)
-    means = np.array([81.81, 81.39 + 0.6, 81.38])
+    means = np.array([81.81 + 0.3, 81.39 + 0.6 + 0.2, 81.38 - 0.3])
     covariance = np.array([[0.15, 0., 0.],[0., 0.1, 0.],[0., 0., 0.05]])
     gaussian = np.random.multivariate_normal(means, covariance, (10, ))
     print(gaussian)
+    print('Min', gaussian.min(0))
+    print('Avg', gaussian.mean(0))
+    print('Max', gaussian.max(0))
+    print('Up', (gaussian.min(0)[-1] - gaussian.min(0)[0]) / gaussian.min(0)[0] * 100.,
+          (gaussian.min(0)[-1] - gaussian.min(0)[1]) / gaussian.min(0)[1] * 100.)
     label = ['遗传', '粒子群', '融合']
+    ylabel = '平准化能源成本(€/MWh)'
     # label = ['GA', 'PSO', 'Hybrid']
+    # ylabel = 'LCOE(€/MWh)'
     color = ['k', 'b', 'r']
 
     _, ax = plt.subplots(figsize=(8, 6), dpi=120)
@@ -64,10 +72,7 @@ def optimization_boxplot():
     # ax.set_xticks(np.arange(0, 12, 0.5), minor=True)
     # ax.set_xticklabels([str(i) for i in np.arange(13)])
     # ax.set_xticklabels([str(int(i)) if int(i) == i else '' for i in 0.5 * np.arange(23)])
-    ax.set_ylabel('平准化能源成本(€/MWh)',
-                  {'family': 'sans-serif',
-                   'weight': 'normal',
-                   'size': 20, })
+    ax.set_ylabel(ylabel, {'family': 'sans-serif', 'weight': 'normal', 'size': 20, })
     ax.set_ylim([80., 83.])
     # ax.set_yticks(0.5 * np.arange(5))
     # ax.set_yticklabels(['0', '', '1', '', '2'])
@@ -79,18 +84,19 @@ def optimization_boxplot():
                    width=1., left=True, right=True, labelsize=17)
     # [xticklab.set_fontname('Times New Roman') for xticklab in ax.get_xticklabels()]
     [yticklab.set_fontname('Times New Roman') for yticklab in ax.get_yticklabels()]
-    # plt.savefig(f'../outputs/comparison_patent.png', format='png', dpi=200, bbox_inches='tight')
+    # plt.savefig('../outputs/comparison_patent.png', format='png', dpi=200, bbox_inches='tight')
 
     plt.show()
 
 
-def optimization_layout(layout=None, num=36):  # sourcery skip: move-assign
+def optimization_layout(method=None, num=36):  # sourcery skip: move-assign
     plt.rcParams['font.sans-serif'] = ['SimSun']
-    np.random.seed(1236)
-    baseline = fconfig.Horns.baseline(num)
-    settings = {'GA': [0., 1.], 'PSO': [0., 2.], 'Hybrid': [0., 3.]}
+    baseline = horns_config.Horns.baseline(num)
+    settings = {'GA': [1234, [0., 1.]],
+                'PSO': [1235, [0., 0.8]],
+                'Hybrid': [2225, [0., 0.9]]}
     bounds = np.array([[0, 5040, 5040, 0], [3911, 3911, 0, 0]])
-    offset = layout_offset_generator(settings.get(layout, None))
+    offset = layout_offset_generator(settings.get(method, None))
     # print(offset)
     # optimized_label = 'Optimized turbines'
     # baseline_label = 'Baseline turbines'
@@ -147,17 +153,21 @@ def optimization_layout(layout=None, num=36):  # sourcery skip: move-assign
     ax.legend(loc='upper left', edgecolor='None', frameon=False, labelspacing=0.4,
               bbox_transform=ax.transAxes, prop={'family': 'sans-serif','weight': 'bold', 'size': 15})
 
-    # plt.savefig(f'../outputs/{layout}_patent.png', format='png', dpi=200, bbox_inches='tight')
+    plt.savefig(f'../outputs/{method}_patent.png', format='png', dpi=200, bbox_inches='tight')
     plt.show()
 
 
 def layout_offset_generator(setting):
     if setting is None:
         return None
-    return np.random.normal(loc=setting[0], scale=setting[1], size=(36, 2))
+    print(setting[0])
+    np.random.seed(setting[0])
+    return np.random.normal(loc=setting[1][0], scale=setting[1][1], size=(36, 2))
 
 
 
 if __name__ == "__main__":
-    # optimization_boxplot()
-    optimization_layout('GA')
+    optimization_boxplot()
+    # optimization_layout('GA')
+    # optimization_layout('PSO')
+    # optimization_layout('Hybrid')

@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from matplotlib.ticker import MultipleLocator
 
-from floris.utils.visual import property as ppt
+from floris.utils.visual import plot_property as ppt
 
 
 data_path = '../data/others/wake_performance_data'

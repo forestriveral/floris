@@ -7,7 +7,7 @@ import matplotlib.patches as mpatches
 from matplotlib.animation import FuncAnimation
 from matplotlib.ticker import MultipleLocator
 
-import floris.utils.visual.property as ppt
+import floris.utils.visual.plot_property as ppt
 
 
 def yawed_turbine_power():

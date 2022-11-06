@@ -15,18 +15,17 @@ import import_string
 # from attrs import define, field
 import matplotlib.pyplot as plt
 
-from floris.tools import FlorisInterface, visualize_cut_plane
-from floris.type_dec import NDArrayFloat, FromDictMixin
 from floris.utilities import load_yaml
 from floris.simulation import Floris, turbine
-from floris.utils.tools import operation as tops
 from floris.logging_manager import LoggerBase
 from floris.simulation.wake import MODEL_MAP
-from floris.utils.tools.layout_loader import WindFarmLayout as WFL
+from floris.tools import FlorisInterface, visualize_cut_plane
+from floris.type_dec import NDArrayFloat, FromDictMixin
 
 
-# from floris.utils.visualization import evaluation as veval
-
+from floris.utils.tools import power_calc_ops as power_ops
+from floris.utils.tools.farm_layout_loader import WindFarmLayout as WFL
+# from floris.utils.visualization import power_calc_plot
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #

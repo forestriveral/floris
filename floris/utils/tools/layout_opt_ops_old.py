@@ -7,8 +7,9 @@ import pandas as pd
 from sklearn.metrics.pairwise import \
     euclidean_distances
 
-from floris.utils.tools import farm_config as fconfig
-from floris.utils.visual.wind_resource import winds_pdf
+from floris.utils.visual import horns_wind_plot
+from floris.utils.tools import horns_farm_config as horns_config
+
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
@@ -29,7 +30,7 @@ def wind_speed_dist(type="weibull"):
 
 def params_loader(name="horns"):
     if name == "horns":
-        return fconfig.Horns
+        return horns_config.Horns
     else:
         raise ValueError("Invalid wind farm name! Please check!...")
 
@@ -37,7 +38,7 @@ def params_loader(name="horns"):
 def winds_loader(data, name, bins, speed=(4, 25)):
     data_path = f"../params/wflo/{data}_{name}_{bins[0]}_{bins[1]}.csv"
     if not os.path.exists(data_path):
-        winds_pdf(bins, speed, name=name, output=data)
+        horns_wind_plot(bins, speed, name=name, output=data)
     return pd.read_csv(data_path, header=0, index_col=0)
 
 
@@ -129,7 +130,7 @@ def mindist_calculation(layout, mindist=5., D_r=80.):
 
 def pso_initial_particles(wtnum, num=30, D=80., layout=None):
     # np.random.seed(1234)
-    baseline, spacing = fconfig.baseline_layout(wtnum, bounds=None,
+    baseline, spacing = horns_config.baseline_layout(wtnum, bounds=None,
                                             arrays=None, grids=None,
                                             spacing=True)
     xy_limits = (baseline / D)[[0, -1], :]

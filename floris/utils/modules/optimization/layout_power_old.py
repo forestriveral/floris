@@ -5,11 +5,11 @@ from multiprocessing import Pool as ProcessPool
 import numpy as np
 import pandas as pd
 
-from floris.utils.tools import eval_ops as eops
-from floris.utils.tools import opt_ops as oops
-from floris.utils.tools import farm_config as fconfig
-from floris.utils.visual import wflo_eval as vweval
-from floris.utils.visual import wflo_opt as vwopt
+from floris.utils.tools import power_calc_ops_old as power_ops
+from floris.utils.tools import layout_opt_ops_old as layout_ops
+from floris.utils.tools import horns_farm_config as horns_config
+from floris.utils.visual import power_calc_plot_old as power_plot
+from floris.utils.visual import layout_opt_plot_old as layout_plot
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 #                                     MAIN                                     #
@@ -24,7 +24,7 @@ class LayoutPower(object):
         self.turb = configs["turb"]
         self.bins = (self.vbins, self.wbins)
         self.uniform = self.uniform_check(configs["param"])
-        self.wd_cdf = oops.wind_speed_dist()[1]
+        self.wd_cdf = layout_ops.wind_speed_dist()[1]
 
         self.wind_name = configs["wind"]
         self.cost_name = configs["cost"]
@@ -42,7 +42,7 @@ class LayoutPower(object):
         self.yawed = kwargs.get("yawed",np.tile(np.array([0., None]), (self.wtnum, 1)))
         if not kwargs.get("params", None):
             self.param = self.params_uniform(self.wtnum)
-            self.pow_curve = oops.params_loader(self.param["power_curve"][0]).pow_curve
+            self.pow_curve = layout_ops.params_loader(self.param["power_curve"][0]).pow_curve
         else:
             self.param = self.params_nonuniform(kwargs["params"])
         self.speed = (np.min(self.param["v_in"]), np.max(self.param["v_out"]))
@@ -59,8 +59,8 @@ class LayoutPower(object):
         pass
 
     def params_uniform(self, num):
-        params = oops.params_loader(self.params).params().values
-        cols = oops.params_loader(self.params).params().columns
+        params = layout_ops.params_loader(self.params).params().values
+        cols = layout_ops.params_loader(self.params).params().columns
         return pd.DataFrame(np.repeat(params, num, axis=0), columns=cols)
 
     def params_nonuniform(self, params):   # TODO
@@ -68,20 +68,20 @@ class LayoutPower(object):
         return None
 
     def data_load(self, data):
-        return oops.winds_loader(data, self.wind_name, self.bins, self.speed)
+        return layout_ops.winds_loader(data, self.wind_name, self.bins, self.speed)
 
     def model_load(self, name, model):
-        return oops.find_and_load_model(name, model)
+        return power_ops.wake_model_load(name, model)
 
     def discretization(self, bins, speeds):
-        return oops.winds_discretization(bins, speeds)
+        return layout_ops.winds_discretization(bins, speeds)
 
     def unpack_nonuniform(self, ):
         pass
 
     def plot_layout(self, layout, theta=0, annotate=False):
-        return vweval.layout_plot(
-            eops.coordinate_transform(layout, theta), annotate)
+        return power_plot.layout_plot(
+            power_ops.coordinate_transform(layout, theta), annotate)
 
     def wakes(self, mprocess=False):
         wd_num, ws_num = self.w_point.shape[0], self.v_point.shape[0]
@@ -112,7 +112,7 @@ class LayoutPower(object):
         return result
 
     def powers(self, deficits, params, **kwargs):
-        pow_curve = self.pow_curve if self.uniform else oops.params_loader(params["power_curve"]).pow_curve
+        pow_curve = self.pow_curve if self.uniform else layout_ops.params_loader(params["power_curve"]).pow_curve
         wt_power = np.vectorize(pow_curve)(self.v_point[:, None] * (1. - deficits))
         no_wake_wt_power = \
             np.vectorize(pow_curve)(self.v_point[:, None] * np.ones((deficits.shape)))
@@ -161,15 +161,15 @@ class LayoutPower(object):
                     f"{bno_wake_power:.3f} / {bcf:.2f} / {beff:.2f} / {100. - beff:.2f}\n")
         if kwargs.get("wd_output", False):
             assert wd_powers.all() != 0.
-            vwopt.wd_power_plot(self.w_point, wd_powers, self.capacity, **kwargs)
+            layout_plot.wd_power_plot(self.w_point, wd_powers, self.capacity, **kwargs)
         if kwargs.get("wt_output", False):
-            vwopt.wt_power_plot(powers, self.capacity, **kwargs)
+            layout_plot.wt_power_plot(powers, self.capacity, **kwargs)
         return cost, powers
 
     def deficits(self, theta, layout, *args):
         # theta, speeds, wm, wsm, tim, turb, params, layout = args
-        wt_loc = oops.coordinate_transform(layout, theta)
-        wt_index = eops.wind_turbines_sort(wt_loc)
+        wt_loc = power_ops.coordinate_transform(layout, theta)
+        wt_index = power_ops.wind_turbines_sort(wt_loc)
         assert wt_index.shape[0] == wt_loc.shape[0]
         deficits = np.zeros((len(self.v_point), len(wt_index)))
         turbine_deficit = np.full((len(self.v_point), len(wt_index), len(wt_index) + 2), None)
@@ -183,7 +183,7 @@ class LayoutPower(object):
                 yaw_reduction = np.cos(yaw_t * np.pi / 180)**(1.88 / 3.0)
                 turbine_deficit[z, i, -1] = turbine_deficit[z, i, -1] * yaw_reduction
                 thrust = 4 * induction_t * (1 - induction_t) if induction_t is not None else \
-                    oops.params_loader(self.param.iloc[t]["ct_curve"]).ct_curve(turbine_deficit[z, i, -1])
+                    layout_ops.params_loader(self.param.iloc[t]["ct_curve"]).ct_curve(turbine_deficit[z, i, -1])
                 if i < len(wt_index) - 1:
                     wake = self.velocity_model(wt_loc[t, :], thrust, self.param.iloc[t]["D_r"],
                                                self.param.iloc[t]["z_hub"], T_m=self.turb_model,
@@ -197,7 +197,7 @@ class LayoutPower(object):
                         np.max(turbine_turb[z, :i+1, i+1])**2 + self.turb**2)
                     turbine_deficit[z, i + 1, -2] = total_deficit
                     turbine_deficit[z, i + 1, -1] = v_i * (1 - total_deficit)
-            deficits[z] = eops.wt_power_reorder(wt_index, turbine_deficit[z, :, -2])
+            deficits[z] = power_ops.wt_power_reorder(wt_index, turbine_deficit[z, :, -2])
         v_end = time.time()
         print(f"Wind: {theta}  |  Time: {v_end - v_start}")
         return deficits
@@ -205,7 +205,7 @@ class LayoutPower(object):
 
 def analysis(path="solution", baseline="horns", result=None, config=None, **kwargs):
     result = result if isinstance(result, dict) else \
-        oops.json_load(f"{path}/{result}.json")
+        layout_ops.json_load(f"{path}/{result}.json")
     config = config or result['config']
     wf = LayoutPower(config)
     if wf.uniform:
@@ -225,18 +225,18 @@ def analysis(path="solution", baseline="horns", result=None, config=None, **kwar
         'WTs number is not matching. Please check!'
     print("\nWind Turbine Num: ", wt_num)
     if baseline in ['horns', ]:
-        baseline = oops.params_loader(baseline).baseline(wt_num)
+        baseline = layout_ops.params_loader(baseline).baseline(wt_num)
     if (config["opt"] == "ga" and config["stage"] != 2) and config["grid"]:
-        _, grids = oops.layout2grids([0, 0], [63, 48.89], config["grid"])
-        layout = oops.grids2layout(layout, grids)
+        _, grids = layout_ops.layout2grids([0, 0], [63, 48.89], config["grid"])
+        layout = layout_ops.grids2layout(layout, grids)
     layout = layout[np.argsort(layout[:, 1]), :] * 80.
     layout = layout - np.array([0, 589])
     cost, _ = wf.test(layout, baseline, param=param, path=path, **kwargs)
     if cost is not None:
         if kwargs.get("layout_output", False):
-            vwopt.wf_layout_plot(layout, baseline, path=path, **kwargs)
+            layout_plot.wf_layout_plot(layout, baseline, path=path, **kwargs)
         if kwargs.get("curve_output", False):
-            vwopt.opt_curve_plot(result, path=path, **kwargs)
+            layout_plot.opt_curve_plot(result, path=path, **kwargs)
 
 
 
@@ -272,7 +272,7 @@ if __name__ == "__main__":
         # "turbulence": None,
     }
 
-    layout = (fconfig.Horns.baseline(25) / 80.).ravel()
+    layout = (horns_config.Horns.baseline(25) / 80.).ravel()
     # layout = None
     # path = "output/21_6_30/Jen_49_mos"
     # path = "solution"

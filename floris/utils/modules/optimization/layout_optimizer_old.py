@@ -5,11 +5,11 @@ import geatpy as ea
 import numpy as np
 import matplotlib.pyplot as plt
 
-from floris.utils.tools import opt_ops as optops
-from floris.utils.tools import farm_config as fconfig
-from floris.utils.tools import skopt_pso as skpso
-from floris.utils.visual import wflo_opt as vwopt
-from floris.utils.modules.optimization import wflo_layout as wflayout
+from floris.utils.tools import layout_opt_ops_old as layout_ops
+from floris.utils.tools import horns_farm_config as horns_config
+from floris.utils.tools import scikit_vanilla_pso as scikit_pso
+from floris.utils.visual import layout_opt_plot_old as layout_plot
+from floris.utils.modules.optimization import layout_power_old as layout_power
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
@@ -40,7 +40,7 @@ class EALayout(ea.Problem):
                             objDim, objTypes,
                             varDim, varTypes,
                             lb, ub, lbin, ubin)
-        self.calculator = wflayout.LayoutPower(configs)
+        self.calculator = layout_power.LayoutPower(configs)
 
     def bounds(self):
         if self.grids is not None:
@@ -50,14 +50,14 @@ class EALayout(ea.Problem):
         return lb * self.wtnum, ub * self.wtnum
 
     def layout2grids(self, lb, ub, min_gs=5.):
-        grid_ub, self.grids = optops.layout2grids(lb, ub, min_gs=min_gs, mode="rank")
+        grid_ub, self.grids = layout_ops.layout2grids(lb, ub, min_gs=min_gs, mode="rank")
         return grid_ub
 
     def grids2layout(self, inds):
-        return optops.grids2layout(inds, self.grids)
+        return layout_ops.grids2layout(inds, self.grids)
 
     def minDist(self, layout, mind=5.):
-        return optops.mindist_calculation(layout, mindist=mind)
+        return layout_ops.mindist_calculation(layout, mindist=mind)
 
     def aimFunc(self, pop, debug=True):
         Vars = pop.Phen if self.grids is not None else \
@@ -117,7 +117,7 @@ class EAOptimizer(object):
 
         prophetPop = None
         if prior:
-            baseline = optops.params_loader('horns').baseline(
+            baseline = layout_ops.params_loader('horns').baseline(
                 self.problem.wtnum, grids=self.problem.grids)
             if baseline is not None:
                 prophetChrom = baseline if self.problem.grids is not None else \
@@ -133,12 +133,12 @@ class EAOptimizer(object):
                        self.algom.trace['f_best'],
                        self.algom.trace['f_avg'],
                        self.algom.trace['x_best']]
-            self.result = optops.optimized_results_package(package)
+            self.result = layout_ops.optimized_results_package(package)
             if output:
                 if not os.path.exists(outdir):
                     os.makedirs(outdir)
                 tag = tag or self.config['tag']
-                optops.optimized_results_output(
+                layout_ops.optimized_results_output(
                     self.result, outdir, tag, stage='ga')
                 if analyse:
                     self.stat(outdir, tag, **kwargs)
@@ -150,10 +150,10 @@ class EAOptimizer(object):
     def stat(self, outdir, tag=None, **kwargs):
         tag = f'_{tag}' if tag is not None else ''
         print(f'\nEvaluation times：{self.algom.evalsNum}')
-        runtime = optops.time_formator(self.algom.passTime)
+        runtime = layout_ops.time_formator(self.algom.passTime)
         print(f'Elapsed time {runtime[0]:.2f} {runtime[1]}')
         print(f'Optimal Levelized Cost：{self.solution.ObjV[0][0]}')
-        wflayout.analysis(path=outdir,
+        layout_power.analysis(path=outdir,
                       baseline="horns",
                       result=self.result,
                       config=self.config,
@@ -188,29 +188,29 @@ def PSOLayout(config):
     np.random.seed(3456)
 
     def wflo(layout):
-        return wflayout.LayoutPower(config).run(
+        return layout_power.LayoutPower(config).run(
             np.array(layout).reshape(config['num'], 2) * 80.)[0]
 
     def min_dist(layout):
         layout = np.array(layout).reshape(config['num'], 2)
-        return optops.mindist_calculation(layout)
+        return layout_ops.mindist_calculation(layout)
 
     cons = (min_dist,)
     dim = config['num'] * 2
     lb = [0, 7.36] * config['num']
     ub = [63, 56.25] * config['num']
-    vb = np.array(fconfig.baseline_layout(config['num'], grids=None, spacing=True)[1])
+    vb = np.array(horns_config.baseline_layout(config['num'], grids=None, spacing=True)[1])
     vb = list( (vb / 80. - 0.) / 2) * config['num']
     pop, max_iter = 40, 120
-    parts = optops.pso_initial_particles(config['num'], pop)
-    pso = skpso.PSO(func=wflo, n_dim=dim, pop=pop, max_iter=max_iter,
+    parts = layout_ops.pso_initial_particles(config['num'], pop)
+    pso = scikit_pso.PSO(func=wflo, n_dim=dim, pop=pop, max_iter=max_iter,
                     lb=lb, ub=ub, vb=vb, w=0.8, c1=0.5, c2=0.5,
                     constraint_ueq=cons, verbose=True, initpts=parts,)
     pso.run()
     print('\nbest_y is', pso.gbest_y[0])
     optimized_layout = \
         np.array(pso.gbest_x, dtype=np.float).reshape((config['num'], 2)) 
-    vwopt.wf_layout_plot(optimized_layout * 80.,
+    layout_plot.wf_layout_plot(optimized_layout * 80.,
                         layout_name='pso_layout_25',)
 
     fig = plt.figure()
@@ -245,29 +245,29 @@ class PSOptimizer(object):
         self.w, self.cp, self.cg = w, c1, c2
 
     def set_vb(self, sub_dist=0.):
-        vb = np.array(fconfig.baseline_layout(self.wtnum, grids=None,
+        vb = np.array(horns_config.baseline_layout(self.wtnum, grids=None,
                                           spacing=True)[1])
         return list((vb / 80. - sub_dist) / 2 * 2)
 
     def init_parts(self, particles=None):
-        return optops.pso_initial_particles(self.wtnum, self.pop,
+        return layout_ops.pso_initial_particles(self.wtnum, self.pop,
                                           layout=particles)
 
     def obj_func(self, config):
         def wflo(layout):
-            return wflayout.LayoutPower(config).run(
+            return layout_power.LayoutPower(config).run(
                 np.array(layout).reshape(config['num'], 2) * 80.)[0]
         return wflo
 
     def obj_const(self, config):
         def min_dist(layout):
             layout = np.array(layout).reshape(config['num'], 2)
-            return optops.mindist_calculation(layout)
+            return layout_ops.mindist_calculation(layout)
         return (min_dist, )
 
     def init_optimizer(self, particles=None):
         self.inparts = self.init_parts(particles)
-        self.pso = skpso.PSO(func=self.obj,
+        self.pso = scikit_pso.PSO(func=self.obj,
                              dim=self.dim,
                              pop=self.pop,
                              max_iter=self.iters,
@@ -290,12 +290,12 @@ class PSOptimizer(object):
                    self.pso.gbest_hist['f_best'],
                    self.pso.gbest_hist['f_avg'],
                    self.pso.gbest_hist['x_best']]
-        self.result = optops.optimized_results_package(package)
+        self.result = layout_ops.optimized_results_package(package)
         if output:
             if not os.path.exists(outdir):
                 os.makedirs(outdir)
             tag = tag or self.config['tag']
-            optops.optimized_results_output(
+            layout_ops.optimized_results_output(
                 self.result, outdir, tag, stage='pso')
             if analyse:
                 self.stat(outdir, tag, **kwargs)
@@ -303,10 +303,10 @@ class PSOptimizer(object):
     def stat(self, outdir, tag=None, **kwargs):
         tag = f'_{tag}' if tag is not None else ''
         print(f'\nEvaluation times: {self.pso.evalsNum}')
-        runtime = optops.time_formator(self.pso.passTime)
+        runtime = layout_ops.time_formator(self.pso.passTime)
         print(f'Elapsed time {runtime[0]:.2f} {runtime[1]}')
         print(f'Optimal Levelized Cost: {self.pso.gbest_y[0]:.4f}')
-        wflayout.analysis(path=outdir,
+        layout_power.analysis(path=outdir,
                       baseline="horns",
                       result=self.result,
                       config=self.config,
@@ -363,18 +363,18 @@ class HybridOptimizer(object):
         self.eaopt, self.psopt = self.opt_init()
         print('Stage One: GA ==>')
         if self.eaopt.run(outdir=outdir, tag=tag, **kwargs):
-            layout = optops.grids2layout(self.eaopt.solution.Phen[0],
+            layout = layout_ops.grids2layout(self.eaopt.solution.Phen[0],
                                          self.eaopt.problem.grids)
             layout = layout[np.argsort(layout[:, 1]), :]
             print('\nStage two: PSO ==>')
             self.psopt.run(outdir=outdir, tag=tag, particles=layout, **kwargs)
-            self.result = optops.optimized_results_combination(
+            self.result = layout_ops.optimized_results_combination(
                 self.config, self.eaopt.result, self.psopt.result)
             if output:
                 if not os.path.exists(outdir):
                     os.makedirs(outdir)
                 tag = tag or self.config['tag']
-                optops.optimized_results_output(
+                layout_ops.optimized_results_output(
                     self.result, outdir, tag, stage='eapso')
                 if analyse:
                     self.stat(outdir, tag, **kwargs)
@@ -386,11 +386,11 @@ class HybridOptimizer(object):
         tag = f'_{tag}' if tag is not None else ''
         evalnum = self.eaopt.algom.evalsNum + self.psopt.pso.evalsNum
         print(f'\nTotal evaluation times：{evalnum}')
-        runtime = optops.time_formator(
+        runtime = layout_ops.time_formator(
             self.eaopt.algom.passTime + self.psopt.pso.passTime)
         print(f'Total elapsed time: {runtime[0]:.2f} {runtime[1]}')
         print(f'Optimal Levelized Cost：{self.psopt.pso.gbest_y[0]:.4f}')
-        wflayout.analysis(path=outdir,
+        layout_power.analysis(path=outdir,
                       baseline="horns",
                       result=self.psopt.result,
                       config=self.config,
@@ -432,7 +432,7 @@ def skopt_test():
 
     constraint_ueq = (
         lambda x: (x[0] - 1) ** 2 + (x[1] - 0) ** 2 - 0.5 ** 2,)
-    pso = skpso.PSO(func=demo_func, n_dim=3, pop=40, max_iter=150,
+    pso = scikit_pso.PSO(func=demo_func, n_dim=3, pop=40, max_iter=150,
                     lb=[0, -1, 0.5], ub=[1, 1, 1], w=0.8, c1=0.5, c2=0.5,
                     constraint_ueq=constraint_ueq)
     pso.run()

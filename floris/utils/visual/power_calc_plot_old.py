@@ -6,7 +6,7 @@ import matplotlib.colors as mcolors
 from matplotlib import rcParams
 from matplotlib.ticker import MultipleLocator
 
-from floris.utils.tools import eval_ops as eops
+from floris.utils.tools import power_calc_ops_old as power_ops
 
 root = os.path.dirname(os.path.dirname(__file__))
 
@@ -90,7 +90,7 @@ def wt_power_eval(legend, data, **kwargs):
         legend_ii = legend[i].split('+')[-2:]
         legend_i = ['BP' if i == 'Bastankhah' else i for i in legend_ii]
         # legend_i = [legend_i[0], legend_i[2], legend_i[1]]
-        ax.plot(x, eops.normalized_wt_power(data[i, :]),
+        ax.plot(x, power_ops.normalized_wt_power(data[i, :]),
                 color=color_group[i], linewidth=2,
                 linestyle=line_styles[i],
                 markersize=0,
@@ -157,7 +157,7 @@ def custom_power_eval(data, ref_data, psave, pshow=None):
                 markeredgecolor='k',
                 markeredgewidth=2)
     for i in range(data.shape[0]):
-        ax.plot(x, eops.normalized_wt_power(data[i, :]),
+        ax.plot(x, power_ops.normalized_wt_power(data[i, :]),
                 color=colors[i], linewidth=2, linestyle=line_styles[i],
                 markersize=5, marker=marker_styles[-(i + 1)],
                 label="")

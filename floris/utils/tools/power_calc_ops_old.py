@@ -125,7 +125,7 @@ def wake_model_load(name, model):
         Jensen, Larsen, XieArcher
     from floris.utils.models.combination.VelocityCombination import Geometric_Sum, \
         Linear_Sum, Energy_Balance, Sum_Squares
-    from floris.utils.models.turbulence.Uniform import Quart, Crespo, Frandsen_turb, \
+    from floris.utils.models.turbulence.uniform import Quart, Crespo, Frandsen_turb, \
         Larsen_turb, Tian, Gao, IEC
     from floris.utils.models.evaluation.EnergyCost import COE, LCOE
 

@@ -1,5 +1,5 @@
-from time import time
 import numpy as np
+from time import time
 from sko.tools import func_transformer
 from sko.base import SkoBase
 

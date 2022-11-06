@@ -42,10 +42,7 @@ def net_train(layers, wm="Jensen", num=3000, pshow=False, wsave=False):
     setup_seed(123)
 
     train_num, test_num = int(num * 0.8), int(num * 0.2)
-    if wm == "BP":
-        wake = "Bastankhah"
-    else:
-        wake = wm
+    wake = "Bastankhah" if wm == "BP" else wm
     data = import_string(f"models.wakes.{wake}.{wm}_data_generator")(num=num)
     # data[:, :-1] = data_normalization(data[:, :-1])
     data = torch.from_numpy(data).cuda()
@@ -79,8 +76,8 @@ def net_train(layers, wm="Jensen", num=3000, pshow=False, wsave=False):
 
     train_errors, test_errors = [], []
     for t in range(epoch):
+        errors = []
         for i, (x, y) in enumerate(loader):
-            errors = []
             pred = net(x)
             loss = loss_func(pred, y)
 
