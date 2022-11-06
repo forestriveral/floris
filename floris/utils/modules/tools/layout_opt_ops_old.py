@@ -7,8 +7,8 @@ import pandas as pd
 from sklearn.metrics.pairwise import \
     euclidean_distances
 
-from floris.utils.visual import horns_wind_plot
-from floris.utils.tools import horns_farm_config as horns_config
+from floris.utils.auxiliary import horns_wind_plot
+from floris.utils.modules.tools import horns_farm_config as horns_config
 
 
 

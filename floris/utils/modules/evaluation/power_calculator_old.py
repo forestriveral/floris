@@ -5,9 +5,9 @@ import pandas as pd
 # import multiprocessing as mp
 # from multiprocessing import Pool as ProcessPool
 
-from floris.utils.tools import power_calc_ops_old as power_ops
-from floris.utils.tools import paper_data_extractor as paper_data
-from floris.utils.visual import power_calc_plot_old as power_plot
+from floris.utils.modules.tools import power_calc_ops_old as power_ops
+from floris.utils.modules.tools import paper_data_extractor as paper_data
+from floris.utils.modules.tools import power_calc_plot_old as power_plot
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #

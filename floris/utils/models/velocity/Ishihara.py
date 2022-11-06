@@ -179,22 +179,13 @@ def _Ishihara_wake(x, y, z, v_inflow, D_r, C_t, I_a, z_hub):
     v_wake = v_inflow * (1 - v_deficit)
 
     def k_1(r, D):
-        if (r / D) > 0.5:
-            return 1.
-        else:
-            return np.cos((np.pi / 2) * ((r / D) - 0.5))**2
+        return 1. if (r / D) > 0.5 else np.cos((np.pi / 2) * ((r / D) - 0.5))**2
 
     def k_2(r, D):
-        if (r / D) > 0.5:
-            return 0.
-        else:
-            return np.cos((np.pi / 2) * ((r / D) + 0.5))**2
+        return 0. if (r / D) > 0.5 else np.cos((np.pi / 2) * ((r / D) + 0.5))**2
 
     def delta(z, H, I):
-        if z >= H:
-            return 0.
-        else:
-            return I * np.sin(np.pi * (1 - (z / H)))**2
+        return 0. if z >= H else I * np.sin(np.pi * (1 - (z / H)))**2
 
     B = 1. / (d + e * (x / D_r) + f * ((1 + (x / D_r))**-2))
     I_add = B * (k_1(r, D_r) * np.exp(- (((r / D_r) - 0.5)**2) / (2 * sigma_D_r**2)) +
@@ -237,10 +228,7 @@ class IshiharaWake(object):
             return np.cos((np.pi / 2) * ((r / self.d_rotor) + 0.5))**2
 
     def delta(self, z):
-        if z >= 0:
-            return 0.
-        else:
-            return self.I_a * np.sin(np.pi * (1 - (z / self.z_hub)))**2
+        return 0. if z >= 0 else self.I_a * np.sin(np.pi * (1 - (z / self.z_hub)))**2
 
     def wake_sigma_Dr(self, x):
         return self.k_star * (x / self.d_rotor) + self.epsilon
@@ -352,22 +340,13 @@ if __name__ == "__main__":
         # print(sigma_D_r)
 
         def k_1(r):
-            if (r / D) > 0.5:
-                return 1.
-            else:
-                return np.cos((np.pi / 2) * ((r / D) - 0.5))**2
+            return 1. if (r / D) > 0.5 else np.cos((np.pi / 2) * ((r / D) - 0.5))**2
 
         def k_2(r):
-            if (r / D) > 0.5:
-                return 0.
-            else:
-                return np.cos((np.pi / 2) * ((r / D) + 0.5))**2
+            return 0. if (r / D) > 0.5 else np.cos((np.pi / 2) * ((r / D) + 0.5))**2
 
         def delta(z, H):
-            if z >= 0:
-                return 0.
-            else:
-                return I * np.sin(np.pi * (-z / H))**2
+            return 0. if z >= 0 else I * np.sin(np.pi * (-z / H))**2
 
         B = 1. / (d + e * x_D + f * ((1 + x_D)**-2))
         I_add = B * (k_1(r) * np.exp(- (((r / D) - 0.5)**2) / (2 * sigma_D_r**2)) +

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import itertools
 
-from floris.utils.visual import layout_opt_plot_old as layout_plot
+from floris.utils.modules.tools import layout_opt_plot_old as layout_plot
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 #                               WIND_FARMS                                     #

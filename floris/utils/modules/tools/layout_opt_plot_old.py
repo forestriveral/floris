@@ -5,7 +5,7 @@ import matplotlib.patches as patches
 from matplotlib.font_manager import FontProperties
 from matplotlib.ticker import MultipleLocator
 
-from floris.utils.visual import plot_property as ppt
+from floris.utils.modules.tools import plot_property as ppt
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #

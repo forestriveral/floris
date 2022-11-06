@@ -5,7 +5,7 @@ from pathlib import Path
 
 from attrs import define, field
 
-from floris.utils.tools.farm_layout_loader import WindFarmLayout as WFL
+from floris.utils.modules.tools.farm_layout_loader import WindFarmLayout as WFL
 
 file_dir = os.path.dirname(os.path.abspath(__file__))
 baseline_data_dir = Path(file_dir).parent / 'data/baselines/'

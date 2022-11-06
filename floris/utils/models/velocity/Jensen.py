@@ -3,7 +3,7 @@ import time
 import numpy as np
 from scipy import integrate
 
-from floris.utils.tools import power_calc_ops_old as vops
+from floris.utils.modules.tools import power_calc_ops_old as vops
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
@@ -47,14 +47,12 @@ class JensenWake(object):
         if self.ref_loc is None:
             raise ValueError(
                 "Reference location is invalid. Need to initiate first.")
-        else:
-            if self.ref_loc.shape != (2, ):
-                raise ValueError(
-                    "Reference location format error!")
-            else:
-                r_wake = self.wake_width(dist) / 2
-                assert r_wake >= 0 and r_wake != np.NaN, "Invalid wake diameter."
-                return r_wake
+        if self.ref_loc.shape != (2,):
+            raise ValueError(
+                "Reference location format error!")
+        r_wake = self.wake_width(dist) / 2
+        assert r_wake >= 0 and r_wake != np.NaN, "Invalid wake diameter."
+        return r_wake
 
     @staticmethod
     def wake_intersection(d_spanwise, r_wake, down_d_rotor):

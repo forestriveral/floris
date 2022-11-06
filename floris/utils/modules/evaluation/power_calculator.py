@@ -23,8 +23,8 @@ from floris.tools import FlorisInterface, visualize_cut_plane
 from floris.type_dec import NDArrayFloat, FromDictMixin
 
 
-from floris.utils.tools import power_calc_ops as power_ops
-from floris.utils.tools.farm_layout_loader import WindFarmLayout as WFL
+from floris.utils.modules.tools import power_calc_ops as power_ops
+from floris.utils.modules.tools.farm_layout_loader import WindFarmLayout as WFL
 # from floris.utils.visualization import power_calc_plot
 
 

@@ -5,11 +5,11 @@ from multiprocessing import Pool as ProcessPool
 import numpy as np
 import pandas as pd
 
-from floris.utils.tools import power_calc_ops_old as power_ops
-from floris.utils.tools import layout_opt_ops_old as layout_ops
-from floris.utils.tools import horns_farm_config as horns_config
-from floris.utils.visual import power_calc_plot_old as power_plot
-from floris.utils.visual import layout_opt_plot_old as layout_plot
+from floris.utils.modules.tools import power_calc_ops_old as power_ops
+from floris.utils.modules.tools import layout_opt_ops_old as layout_ops
+from floris.utils.modules.tools import horns_farm_config as horns_config
+from floris.utils.modules.tools import power_calc_plot_old as power_plot
+from floris.utils.modules.tools import layout_opt_plot_old as layout_plot
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 #                                     MAIN                                     #

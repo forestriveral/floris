@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 # from matplotlib.font_manager import FontProperties
 
-from floris.utils.visual import plot_property as ppt
-from floris.utils.tools import horns_farm_config as horns_config
+from floris.utils.modules.tools import plot_property as ppt
+from floris.utils.modules.tools import horns_farm_config as horns_config
 
 
 

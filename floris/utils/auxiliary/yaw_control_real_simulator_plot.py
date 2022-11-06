@@ -2,9 +2,10 @@ import copy
 import numpy as np
 import matplotlib.pyplot as plt
 
-from floris.tools import FlorisInterface
+# from floris.tools import FlorisInterface
 from floris.tools.visualization import visualize_cut_plane
-from floris.utils.visual import plot_property as ppt
+
+from floris.utils.modules.tools import plot_property as ppt
 from floris.utils.modules.control.yaw_control_real_simulator import YawSimulator as YS
 
 

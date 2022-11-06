@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 
-from floris.utils.visual import plot_property as ppt
+from floris.utils.modules.tools import plot_property as ppt
 
 
 data_dir = "../data/others/Blind_test"

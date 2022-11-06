@@ -6,7 +6,7 @@ import matplotlib.colors as mcolors
 import matplotlib.patches as patches
 from matplotlib.ticker import MultipleLocator, IndexLocator, LinearLocator
 
-from floris.utils.visual import plot_property as ppt
+from floris.utils.modules.tools import plot_property as ppt
 
 
 default_fluent_dir = "../data/fluent"

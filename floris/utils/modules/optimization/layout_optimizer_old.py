@@ -5,10 +5,10 @@ import geatpy as ea
 import numpy as np
 import matplotlib.pyplot as plt
 
-from floris.utils.tools import layout_opt_ops_old as layout_ops
-from floris.utils.tools import horns_farm_config as horns_config
-from floris.utils.tools import scikit_vanilla_pso as scikit_pso
-from floris.utils.visual import layout_opt_plot_old as layout_plot
+from floris.utils.modules.tools import layout_opt_ops_old as layout_ops
+from floris.utils.modules.tools import horns_farm_config as horns_config
+from floris.utils.modules.tools import scikit_vanilla_pso as scikit_pso
+from floris.utils.modules.tools import layout_opt_plot_old as layout_plot
 from floris.utils.modules.optimization import layout_power_old as layout_power
 
 

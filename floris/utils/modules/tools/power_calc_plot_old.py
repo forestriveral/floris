@@ -6,7 +6,7 @@ import matplotlib.colors as mcolors
 from matplotlib import rcParams
 from matplotlib.ticker import MultipleLocator
 
-from floris.utils.tools import power_calc_ops_old as power_ops
+from floris.utils.modules.tools import power_calc_ops_old as power_ops
 
 root = os.path.dirname(os.path.dirname(__file__))
 

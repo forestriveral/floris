@@ -2,7 +2,7 @@ import numpy as np
 from scipy import interpolate
 import matplotlib.pyplot as plt
 
-from floris.utils.tools import layout_opt_ops_old as ops
+from floris.utils.modules.tools import layout_opt_ops_old as ops
 
 
 font1 = {'family': 'Times New Roman',
@@ -28,10 +28,8 @@ font5 = {'family': 'Times New Roman',
 
 
 def hybrid_curve_plot_25():
-    hybrid_result = ops.json_load(
-        f"../output/21_6_30/Jen_25_horns/eapso_results_25.json")
-    pso_result = ops.json_load(
-        f"../output/21_6_30/Jen_pso_25/pso_results_25.json")
+    hybrid_result = ops.json_load("../output/21_6_30/Jen_25_horns/eapso_results_25.json")
+    pso_result = ops.json_load("../output/21_6_30/Jen_pso_25/pso_results_25.json")
 
     fig = plt.figure(figsize=(10, 8), dpi=150)
     ax = fig.add_subplot(111)
@@ -84,10 +82,8 @@ def hybrid_curve_plot_25():
 
 
 def hybrid_curve_plot_36():
-    hybrid_result = ops.json_load(
-        f"../output/21_7_01/BP_eapso_36/eapso_results_36.json")
-    pso_result = ops.json_load(
-        f"../output/21_7_01/BP_single_25/eapso_results_25.json")
+    hybrid_result = ops.json_load("../output/21_7_01/BP_eapso_36/eapso_results_36.json")
+    pso_result = ops.json_load("../output/21_7_01/BP_single_25/eapso_results_25.json")
 
     fig = plt.figure(figsize=(10, 8), dpi=150)
     ax = fig.add_subplot(111)
@@ -145,10 +141,8 @@ def hybrid_curve_plot_36():
 
 
 def hybrid_curve_plot_49():
-    hybrid_result = ops.json_load(
-        f"../output/21_6_30/Jen_36_average/eapso_results_36.json")
-    pso_result = ops.json_load(
-        f"../output/21_7_01/BP_single_25/eapso_results_25.json")
+    hybrid_result = ops.json_load("../output/21_6_30/Jen_36_average/eapso_results_36.json")
+    pso_result = ops.json_load("../output/21_7_01/BP_single_25/eapso_results_25.json")
 
     fig = plt.figure(figsize=(10, 8), dpi=150)
     ax = fig.add_subplot(111)

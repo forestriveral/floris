@@ -12,10 +12,10 @@ from matplotlib.ticker import MultipleLocator
 
 from floris.utilities import load_yaml, cosd
 
-from floris.utils.visual import plot_property as ppt
-from floris.utils.tools import power_calc_ops_old as power_ops
-from floris.utils.tools import layout_opt_ops_old as layout_ops
-from floris.utils.tools import horns_farm_config as horns_config
+from floris.utils.modules.tools import plot_property as ppt
+from floris.utils.modules.tools import power_calc_ops_old as power_ops
+from floris.utils.modules.tools import layout_opt_ops_old as layout_ops
+from floris.utils.modules.tools import horns_farm_config as horns_config
 
 from floris.utils.modules.optimization.layout_power_old import LayoutPower
 

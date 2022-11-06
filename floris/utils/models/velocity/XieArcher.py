@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import integrate
 
-from floris.utils.tools import power_calc_ops_old as vops
+from floris.utils.modules.tools import power_calc_ops_old as vops
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
@@ -82,7 +82,7 @@ class XieArcherWake(object):
                 0, 2 * np.pi, lambda r: 0, lambda r: down_d_rotor / 2)
             intersect_ratio = self.wake_intersection(
                     d_spanwise, 2 * sigma_y_Dr * self.d_rotor, 2 * sigma_z_Dr * self.d_rotor, down_d_rotor) \
-                        if self.T_m is not None else 0. 
+                        if self.T_m is not None else 0.
             I_add = self.T_m(self.C_thrust, self.I_wake, d_streamwise / self.d_rotor) \
                 if self.T_m is not None else 0.
             return integral_velocity / (0.25 * np.pi * down_d_rotor**2), I_add * intersect_ratio

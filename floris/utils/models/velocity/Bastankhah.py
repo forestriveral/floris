@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from scipy import integrate
 
-from floris.utils.tools import power_calc_ops_old as vops
+from floris.utils.modules.tools import power_calc_ops_old as power_ops
 
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
@@ -27,10 +27,7 @@ class BastankhahWake(object):
         self.I_wake = None if T_m is None else I_w
         self.k_star = 0.033 if T_m is None else 0.3837 * I_w + 0.003678
         # self.k_star = 0.033 if T_m is None else (0.033 * I_w) / I_a
-        if exclusion:
-            self.r_D_ex, self.x_D_ex = self.wake_exclusion
-        else:
-            self.r_D_ex, self.x_D_ex = 10., 20.
+        self.r_D_ex, self.x_D_ex = self.wake_exclusion if exclusion else (10., 20.)
         self.ytheta = ytheta
 
     def wake_sigma_Dr(self, x_D):
@@ -60,7 +57,7 @@ class BastankhahWake(object):
 
     @staticmethod
     def wake_intersection(d_spanwise, r_wake, down_d_rotor):
-        return vops.wake_overlap(d_spanwise, r_wake, down_d_rotor)
+        return power_ops.wake_overlap(d_spanwise, r_wake, down_d_rotor)
 
     @property
     def wake_exclusion(self, m=0.01, n=0.05):
@@ -80,6 +77,7 @@ class BastankhahWake(object):
         return offset
 
     def wake_loss(self, down_loc, down_d_rotor):
+        # sourcery skip: remove-unnecessary-else, swap-if-else-branches
         assert self.ref_loc[1] >= down_loc[1], "Reference WT must be upstream downstream WT!"
         d_streamwise,  d_spanwise = \
             np.abs(self.ref_loc[1] - down_loc[1]), np.abs(self.ref_loc[0] - down_loc[0])
@@ -242,9 +240,8 @@ def wake_plot(wake, x_d0, k, c, r=None, z0=None):
     if z0:
         k = k_decay_constant(np.array(z0), zh=70)
         print(k)
-    else:
-        if not isinstance(k, list) or len(k) == 1:
-            k = [ki for ki in range(len(x_d0))]
+    elif not isinstance(k, list) or len(k) == 1:
+        k = list(range(len(x_d0)))
     if not r:
         r = np.arange(-2, 2, 0.01)
     # print(k)

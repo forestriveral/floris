@@ -6,7 +6,7 @@ from matplotlib.ticker import MultipleLocator
 from floris.tools import FlorisInterface
 from floris.tools import cut_plane
 
-from floris.utils.visual import plot_property as ppt
+from floris.utils.modules.tools import plot_property as ppt
 from floris.utils.modules.control.yaw_control_real_simulator import YawSimulator
 
 
