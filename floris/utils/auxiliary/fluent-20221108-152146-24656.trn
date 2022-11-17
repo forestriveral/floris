@@ -1,0 +1,40 @@
+Auto-Transcript Start Time:  15:21:46, 08 Nov 2022 Tokyo Standard Time 
+Current Directory: "c:\Users\Li Hang\Documents\Projects\floris\floris\utils\auxiliary"
+Information: The server has started and is running.
+
+              Welcome to ANSYS Fluent 2022 R2
+
+              Copyright 1987-2022 ANSYS, Inc. All Rights Reserved.
+              Unauthorized use, distribution or duplication is prohibited.
+              This product is subject to U.S. laws governing export and re-export.
+              For full Legal Notice, see documentation.
+
+Build Time: May 27 2022 08:52:58 EDT  Build Id: 10212  
+ 
+Connected License Server List:	
+
+*********************************************
+Info: Your license enables 4-way parallel execution.
+For faster simulations, please start the application with the appropriate parallel options.
+*********************************************
+
+Host spawning Node 0 on machine "forestriveral" (win64).
+
+----------------------------------------------------------------------------------------
+ID    Hostname       Core  O.S.         PID    Vendor                                  
+----------------------------------------------------------------------------------------
+n0    forestriveral  1/24  Windows-x64  18912  12th Gen Intel(R) Core(TM) i9-12900K    
+host  forestriveral        Windows-x64  19100  12th Gen Intel(R) Core(TM) i9-12900K    
+
+MPI Option Selected: intel
+----------------------------------------------------------------------------------------
+
+Cleanup script file is c:\\Users\\Li Hang\\Documents\\Projects\\floris\\floris\\utils\\auxiliary\\cleanup-fluent-forestriveral-19100.bat
+
+> Shutting down Server...
+Services Shutdown...Done.
+Server Shutdown...Done.
+Queue Cleared...Done.
+Shutdown Complete.
+Auto-Transcript Stop Time:  15:21:56, 08 Nov 2022 Tokyo Standard Time 
+Total Transcript Time: 0 Minute 10 Second.
