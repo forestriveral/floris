@@ -264,16 +264,25 @@ def visualize_cut_plane(
         extend="both",
     )
 
+    # u_mesh = cut_plane.df.u.values.reshape(cut_plane.resolution[1], cut_plane.resolution[0])
+    # im = ax.pcolormesh(cut_plane.df.x1.values.reshape(cut_plane.resolution[1], cut_plane.resolution[0]),
+    #                    cut_plane.df.x2.values.reshape(cut_plane.resolution[1], cut_plane.resolution[0]),
+    #                    np.ma.masked_where(np.isnan(u_mesh), u_mesh),
+    #                    cmap='bwr',
+    #                    vmin=min_speed,
+    #                    vmax=max_speed,
+    #                    shading="nearest")
+
     # Add line contour
-    line_contour_cut_plane(
-        cut_plane,
-        ax=ax,
-        levels=levels,
-        colors="b",
-        linewidths=0.8,
-        alpha=0.3,
-        **kwargs
-    )
+    # line_contour_cut_plane(
+    #     cut_plane,
+    #     ax=ax,
+    #     levels=levels,
+    #     colors="b",
+    #     linewidths=0.8,
+    #     alpha=0.3,
+    #     **kwargs
+    # )
 
     if cut_plane.normal_vector == "x":
         ax.invert_xaxis()
