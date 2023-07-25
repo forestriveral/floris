@@ -1,110 +1,81 @@
-# Copyright 2021 NREL
-
-# Licensed under the Apache License, Version 2.0 (the "License"); you may not
-# use this file except in compliance with the License. You may obtain a copy of
-# the License at http://www.apache.org/licenses/LICENSE-2.0
-
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-# License for the specific language governing permissions and limitations under
-# the License.
-
-# See https://floris.readthedocs.io for documentation
-
 import numpy as np
-from floris.simulation import turbine
 import matplotlib.pyplot as plt
 
-import floris.tools as wfct
+import floris.tools.visualization as wakeviz
+from floris.tools import FlorisInterface
 
 
-
-config = "../inputs/single_wake.json"
-fi = wfct.floris_interface.FlorisInterface(config)
+default_path = '../../input/config'
 
 
-def hrizontal_plane_plot(fi):
-    D = fi.floris.farm.turbine_map.turbines[0].rotor_diameter
-    wd, yaw_angles = [270.], [0.]
-    fi.reinitialize_flow_field(wind_direction=wd, layout_array=([0], [0]))
-    fi.calculate_wake(yaw_angles=yaw_angles)
+def horizontal_plane_plot(config):
+    config_file = f'{default_path}/{config}'
+    fi = FlorisInterface(config_file)
 
-    # Get horizontal plane at default height (hub-height)
-    hor_plane = fi.get_hor_plane(x_resolution=200,
-                                 y_resolution=200,
-                                 x_bounds=(-2. * D, D * 16.),
-                                 y_bounds=(-2. * D, 2. * D),
-                                 )
+    D_r = fi.floris.farm.rotor_diameters[0]
+    H_hub = fi.floris.farm.hub_heights[0]
+    # layout_x, layout_y = [0. * D_r, ], [0. * D_r, ]
+    layout_x, layout_y = [0. * D_r, 5. * D_r], [0. * D_r, 0. * D_r]
+    ws, wd, turb = 10., 300., 0.07
+    yaw_angle_0 = np.array([[[25., -15.]]])
+    yaw_angle_1 = np.array([[[-20., 10.]]])
 
-    # Plot and show
-    fig, ax = plt.subplots(dpi=300)
-    visualize_cut_plane(hor_plane, ax=ax, cmap="coolwarm",)
-    wfct.visualization.plot_turbines(ax, fi.layout_x, fi.layout_y,
-                                     fi.get_yaw_angles(), D * 1.4,
-                                     wind_direction=wd)
-    ax.set_xticks([i * 3 * D for i in range(5)])
+    fi.reinitialize(
+        wind_speeds=[ws],
+        wind_directions=[wd],
+        turbulence_intensity=turb,
+        layout_x=layout_x,
+        layout_y=layout_y,
+        reference_wind_height=H_hub,
+    )
+    fi.calculate_wake(yaw_angles=yaw_angle_1)
+    print(fi.get_farm_power().sum() / 1e6)
+
+    horizontal_plane = fi.calculate_horizontal_plane(
+        height=H_hub,
+        x_resolution=800,
+        y_resolution=200,
+        x_bounds=(-2. * D_r, 16. * D_r),
+        y_bounds=(-2. * D_r, 2. * D_r),
+        # wd=None,
+        # ws=None,
+        yaw_angles=yaw_angle_1,
+    )
+    # fi.calculate_wake(yaw_angles=yaw_angle_1)
+    # print(fi.get_farm_power().sum() / 1e6)
+
+    fig, ax = plt.subplots(figsize=(10, 6), dpi=100)
+    wakeviz.visualize_cut_plane(
+        horizontal_plane,
+        ax=ax,
+        # min_speed=0.,
+        # max_speed=ws[0],
+        cmap='jet',
+        # levels=np.linspace(0, ws[0], 5),
+        color_bar=False,
+        title="Horizontal",
+        )
+
+    wakeviz.plot_turbines_with_fi(
+        fi,
+        ax=ax,
+        )
+
+    ax.set_xticks([i * 3 * D_r for i in range(5)])
     ax.set_xticklabels(['0', '3.0', '6.0', '9.0', '15.0'])
-    ax.set_yticks([-1.0 * D, 0.0, 1.0 * D])
-    ax.set_yticklabels(["-1.0", "0", "1.0"])
-    # plt.savefig(f"../../floris/utils/outputs/wf-2-3d.png", format='png',
-    #             dpi=300, bbox_inches='tight')
+    ax.set_yticks(np.linspace(-1.5, 1.5, 5, endpoint=True) * D_r)
+    ax.set_yticklabels(["-1.5", "-1.0", "0", "1.0", "1.5"])
+
+    fig.tight_layout()
     plt.show()
-
-
-def cross_plane_plot(fi, dist, yaw=0, error=False):
-    D = fi.floris.farm.turbine_map.turbines[0].rotor_diameter
-    wd, yaw_angles = [270.], [yaw]
-    fi.reinitialize_flow_field(wind_direction=wd, layout_array=([0], [0]))
-    fi.calculate_wake(yaw_angles=yaw_angles)
-
-    # Grab some cross planes
-    distance = dist * D
-    cut_plane = fi.get_cross_plane(distance,
-                                   y_resolution=200,
-                                   z_resolution=200,
-                                   y_bounds=(-150., 150.),
-                                #    z_bounds=(0., 180.),
-                                   )
-
-    fig, ax = plt.subplots(dpi=300)
-    _, zm = visualize_cut_plane(cut_plane, ax=ax, cmap="coolwarm", error=error)
-    ax.set_xticks([-126., -63., 0., 63., 126.])
-    ax.set_xticklabels(['-1.0', '-0.5', '0', '0.5', '1.0',])
-    ax.set_yticks([45., 90., 135.])
-    ax.set_yticklabels(['0.5', '1.0', '1.5',])
-    error_flag = 'e' if error else 'o'
-    plt.savefig(f"../outputs/c-{int(yaw)}-{int(dist)}d-{error_flag}.png", format='png',
-                dpi=300, bbox_inches='tight')
-    # plt.show()
-
-    return zm
 
 
 def vertical_plane_plot(fi):
-    D = fi.floris.farm.turbine_map.turbines[0].rotor_diameter
-    wd, yaw_angles = [270.], [25.]
-    fi.reinitialize_flow_field(wind_direction=wd, layout_array=([0], [0]))
-    fi.calculate_wake(yaw_angles=yaw_angles)
+    pass
 
-    # Grab some cross planes
-    # distance = 3 * D
-    cut_plane = fi.get_y_plane(0.0,
-                            #    x_resolution=200,
-                            #    z_resolution=200,
-                            #    x_bounds=(-2. * D, D * 16.),
-                            #    z_bounds=(0., 250),
-                               )
 
-    fig, ax = plt.subplots(dpi=300)
-    wfct.visualization.visualize_cut_plane(cut_plane, ax=ax, cmap="coolwarm",)
-    # ax.set_xticks([i * 3 * D for i in range(5)])
-    # ax.set_xticklabels(['0', '3.0', '6.0', '9.0', '15.0'])
-    # ax.set_yticks([45., 90., 135.])
-    # ax.set_yticklabels(['0.5', '1.0', '1.5',])
-    # plt.savefig(f"../../floris/utils/outputs/wf-2-3d.png", format='png',
-    #             dpi=300, bbox_inches='tight')
-    plt.show()
+def cross_plane_plot(fi):
+    pass
 
 
 def visualize_cut_plane(cut_plane, ax=None, minSpeed=None, maxSpeed=None,
@@ -164,17 +135,13 @@ def validation_plot(origin, pred, save):
     ax.set_ylim([0.6, 1.])
     ax.set_ylabel('Wake velocity by GAN')
 
-    plt.savefig(f"../outputs/{save}.png", format='png',
-                dpi=300, bbox_inches='tight')
+    # plt.savefig(f"../outputs/{save}.png", format='png',
+    #             dpi=300, bbox_inches='tight')
     plt.show()
 
 if __name__ == "__main__":
-    # hrizontal_plane_plot(fi)
+    # config = 'cc.yaml'
+    config = 'gch.yaml'
+    # config = 'emgauss.yaml'
 
-    dist, yaw = -1., 0.
-    ozm = cross_plane_plot(fi, dist, yaw, error=False)
-    # ezm = cross_plane_plot(fi, dist, yaw, error=True)
-
-    # vertical_plane_plot(fi)
-
-    # validation_plot(ozm, ezm, save=f'error-{int(yaw)}-{int(dist)}d')
+    horizontal_plane_plot(config)

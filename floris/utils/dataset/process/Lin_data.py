@@ -8,7 +8,7 @@ from matplotlib.ticker import MultipleLocator, IndexLocator, LinearLocator
 from floris.utils.module.tools import plot_property as ppt
 
 
-data_dir = "../data/others/Lin_yawed"
+data_dir = "../other/Lin_yawed"
 
 
 
@@ -184,6 +184,6 @@ def wake_center_plot(ind='a', output=False):
 
 
 if __name__ == "__main__":
-    # horizontal_velocity_profile(output=True)
+    horizontal_velocity_profile(output=False)
     # horizontal_turbulence_profile(output=True)
-    wake_center_plot(ind='a', output=True)
+    # wake_center_plot(ind='a', output=True)
