@@ -1,60 +1,93 @@
 
 
-
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 #                              PLOT_CONFIGURATION                              #
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 
-font10 = {'family': 'Times New Roman',
-         'weight': 'bold',
-         'size': 10}
+font10btk = {'family': 'Times New Roman',
+             'weight': 'bold',
+             'style': 'italic',
+             'size': 10,
+             'color': 'k',
+             }
 
-font13 = {'family': 'Times New Roman',
-         'weight': 'bold',
-         'size': 13}
+font13btk = {'family': 'Times New Roman',
+             'weight': 'bold',
+             'style': 'italic',
+             'size': 13,
+             'color': 'k',
+             }
 
-font15 = {'family': 'Times New Roman',
-         'weight': 'bold',
-         'size': 15}
+font15btk = {'family': 'Times New Roman',
+             'weight': 'bold',
+             'style': 'italic',
+             'size': 15,
+             'color': 'k',
+             }
 
-font15b = {'family': 'Times New Roman',
-           'weight': 'bold',
-           'size': 15,
-           'color': 'b', }
+font15bnb = {'family': 'Times New Roman',
+             'weight': 'bold',
+             'style': 'normal',
+             'size': 15,
+             'color': 'b',
+             }
 
-font18t = {'family': 'Times New Roman',
-           'weight': 'normal',
-           'style': 'italic',
-           'size': 18,
-           'color': 'k', }
+font18ntk = {'family': 'Times New Roman',
+             'weight': 'normal',
+             'style': 'italic',
+             'size': 18,
+             'color': 'k',
+             }
 
-font18 = {'family': 'Times New Roman',
-           'weight': 'bold',
-           'size': 18, }
+font18btk = {'family': 'Times New Roman',
+             'weight': 'bold',
+             'style': 'italic',
+             'size': 18,
+             'color': 'k',
+             }
 
-font20 = {'family': 'Times New Roman',
-          'weight': 'bold',
-          'size': 20}
+font20bn = {'family': 'Times New Roman',
+            'weight': 'bold',
+            'style': 'normal',
+            'size': 20,
+            }
 
-font20t = {'family': 'Times New Roman',
-          'weight': 'bold',
-          'style': 'italic',
-          'size': 20}
+font20btk = {'family': 'Times New Roman',
+             'weight': 'bold',
+             'style': 'italic',
+             'size': 20,
+             'color': 'k',
+             }
 
-font22 = {'family': 'Times New Roman',
-          'weight': 'bold',
-          'size': 22}
+font20ntk = {'family': 'Times New Roman',
+             'weight': 'normal',
+             'style': 'italic',
+             'size': 20,
+             'color': 'k',
+             }
 
-font25 = {'family': 'Times New Roman',
-          'weight': 'bold',
-          'size': 25}
+font22bnk = {'family': 'Times New Roman',
+             'weight': 'bold',
+             'style': 'normal',
+             'size': 22,
+             'color': 'k',
+             }
 
-font25b = {'family': 'Times New Roman',
-           'weight': 'bold',
-           'size': 25,
-           'color': 'b'}
+font25bnk = {'family': 'Times New Roman',
+             'weight': 'bold',
+             'style': 'normal',
+             'size': 25,
+             'color': 'k',
+             }
 
-lines = ["-", "--", "-.", ":",]
+font25bnb = {'family': 'Times New Roman',
+             'weight': 'bold',
+             'style': 'normal',
+             'size': 25,
+             'color': 'b',
+             }
+
+lines = ["-", "--", "-.", ":", ]
 
 colors = ['k', 'b', 'r', 'g', 'purple', 'peru', 'yellow', 'cyan']
 
@@ -68,11 +101,11 @@ markers = ["o", "D", "+", "x", "s", "^", "d", ">", "<", "v"]
 marker_sizes = [5, 5, 5, 5]
 
 config = {
-    "font.family":'Times New Roman',
-    "mathtext.fontset":'stix',
+    "font.family": 'Times New Roman',
+    "mathtext.fontset": 'stix',
     # "font.style": 'italic',
     # "font.serif": 'Palatino Linotype',
     # "xtick.direction" : 'in',
     # "font.size" : 10,
     # "ytick.major.width" : 0,
-    }
+}

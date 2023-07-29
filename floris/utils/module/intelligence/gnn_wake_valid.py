@@ -29,14 +29,14 @@ def horizontal_plane_plot(config):
         reference_wind_height=H_hub,
     )
     fi.calculate_wake(yaw_angles=yaw_angle_1)
-    print(fi.get_farm_power().sum() / 1e6)
+    print('Farm Power:', fi.get_farm_power().sum() / 1e6)
 
     horizontal_plane = fi.calculate_horizontal_plane(
         height=H_hub,
         x_resolution=800,
         y_resolution=200,
-        x_bounds=(-2. * D_r, 16. * D_r),
-        y_bounds=(-2. * D_r, 2. * D_r),
+        # x_bounds=(-2. * D_r, 16. * D_r),
+        # y_bounds=(-2. * D_r, 2. * D_r),
         # wd=None,
         # ws=None,
         yaw_angles=yaw_angle_1,

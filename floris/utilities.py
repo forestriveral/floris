@@ -276,7 +276,8 @@ def reverse_rotate_coordinates_rel_west(
     grid_y: NDArrayFloat,
     grid_z: NDArrayFloat,
     x_center_of_rotation: float,
-    y_center_of_rotation: float
+    y_center_of_rotation: float,
+    reverse_rotate_dir: float = -1.0
 ):
     """
     This function reverses the rotation of the given grid so that the coordinates are aligned with
@@ -296,7 +297,7 @@ def reverse_rotate_coordinates_rel_west(
     """
     # Calculate the difference in given wind direction from 270 / West
     # We are rotating in the other direction
-    wind_deviation_from_west = -1.0 * wind_delta(wind_directions)
+    wind_deviation_from_west = reverse_rotate_dir * wind_delta(wind_directions)
 
     # Construct the arrays storing the turbine locations
     grid_x_reversed = np.zeros_like(grid_x)

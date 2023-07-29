@@ -575,6 +575,8 @@ class FlowFieldPlanarGrid(Grid):
         max_diameter = np.max(self.reference_turbine_diameter)
 
         if self.normal_vector == "z":  # Rules of thumb for horizontal plane
+            # Using original x and y coordinates to determine the bounds of the grid
+            x, y, z = self.turbine_coordinates_array.T
             if self.x1_bounds is None:
                 self.x1_bounds = (np.min(x) - 2 * max_diameter, np.max(x) + 10 * max_diameter)
 
@@ -593,9 +595,21 @@ class FlowFieldPlanarGrid(Grid):
                 indexing="ij"
             )
 
-            self.x_sorted = x_points[None, None, :, :, :]
-            self.y_sorted = y_points[None, None, :, :, :]
-            self.z_sorted = z_points[None, None, :, :, :]
+            # Rotate the grid coordinates to the reference orientation along the opposite direction
+            self.x_sorted, self.y_sorted, self.z_sorted = \
+            reverse_rotate_coordinates_rel_west(
+                wind_directions=self.wind_directions,
+                grid_x=x_points[None, None, :, :, :],
+                grid_y=y_points[None, None, :, :, :],
+                grid_z=z_points[None, None, :, :, :],
+                x_center_of_rotation=self.x_center_of_rotation,
+                y_center_of_rotation=self.y_center_of_rotation,
+                reverse_rotate_dir=1.0
+            )
+
+            # self.x_sorted = x_points[None, None, :, :, :]
+            # self.y_sorted = y_points[None, None, :, :, :]
+            # self.z_sorted = z_points[None, None, :, :, :]
 
         elif self.normal_vector == "x":  # Rules of thumb for cross plane
             if self.x1_bounds is None:
