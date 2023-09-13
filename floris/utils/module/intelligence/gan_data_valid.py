@@ -88,7 +88,7 @@ def single_wake_velocity_deficit(velocity=[8., 12., 15.],
 
 
 def single_wake_velocity_validation_plot(velocity=[8., 12., 15.],
-                                         turbulence=0.08,
+                                         turbulence=0.07,
                                          offset=[0., 5., 10., 15., 20., 30.],
                                          distance=[4., 6., 8., 10., 12., 15.],
                                          cut_plane='c',  # 'horizontal', 'vertical', 'cross'
@@ -125,15 +125,15 @@ def single_wake_velocity_validation_plot(velocity=[8., 12., 15.],
             tcgan_fine_data = rsm_data + gaussian_process(
                 y_coord, angle_i, dist_j, cut_plane, 'vel', 'finetune',
             )
-            axi.plot(rsm_data, y_coord,
-                     c="w", lw=0., label='RSM-ADM', markersize=10,
+            axi.plot(rsm_data, y_coord, zorder=3,
+                     c="w", lw=0., label='RSM/ADM-R', markersize=12,
                      marker="o", markeredgecolor='k', markeredgewidth=1.5)
-            axi.plot(Ishihara_data, y_coord,
-                     c="w", lw=0., label='Ishihara model', markersize=10,
-                     marker="x", markeredgecolor='g', markeredgewidth=1.5)
-            axi.plot(tcgan_pre_data, y_coord,
-                     c='g', lw=2., ls='-', label='TCGAN with pretrain-stage')
-            axi.plot(tcgan_fine_data, y_coord,
+            axi.plot(Ishihara_data, y_coord, zorder=1,
+                     c="w", lw=0., label='Ishihara model', markersize=12,
+                     marker="^", markeredgecolor='g', markeredgewidth=1.5)
+            axi.plot(tcgan_pre_data, y_coord, zorder=2,
+                     c='b', lw=2., ls='-', label='TCGAN with pretrain-stage')
+            axi.plot(tcgan_fine_data, y_coord, zorder=4,
                      c='r', lw=2.5, ls='-', label='TCGAN with finetune-stage')
             axi.set_xlim([-0.1, 0.8])
             axi.set_xticks([0, 0.2, 0.4, 0.6])
@@ -168,14 +168,14 @@ def single_wake_velocity_validation_plot(velocity=[8., 12., 15.],
                 axi.set_ylabel(y_label, ppt.font20ntk)
                 turb, yaw = param["turbulence"] * 100, param["offset"][angle_i]
                 inflow_info = (r"$v_h=\ $") + f'{vel:.0f}m/s\t' + (r"$ I_a=\ $")  + \
-                    f'{turb:.0f}%\t' + (r"$ \theta=\ $") + f'{yaw:.0f}' + (r"$^{\circ}$")
+                    f'{turb:.0f}%\t' + (r"$ \theta_{yaw}=\ $") + f'{yaw:.0f}' + (r"$^{\circ}$")
                 axi.text(dist_num // 2 - 0.6, 1.03, inflow_info, va='bottom', ha='left',
                          fontdict=ppt.font20ntk, transform=axi.transAxes, math_fontfamily='cm')
                 axi.tick_params(right=False)
             if dist_j == dist_num - 1:
                 axi.tick_params(left=False)
             if angle_i == offset_num - 1:
-                deficit_label = (r"$1 - v/v_h\ $")
+                deficit_label = (r"$\Delta v/v_h\ $")
                 axi.set_xlabel(deficit_label, ppt.font20ntk, math_fontfamily='cm')
         ax1 = ax.flatten()[1]
         handles, labels = ax1.get_legend_handles_labels()
@@ -328,8 +328,8 @@ def single_wake_turbulence_intensity(velocity=8.,
     return wake_param, wake_point, wake_turb
 
 
-def single_wake_turbulence_validation_plot(velocity=8.,
-                                           turbulence=[0.08, 0.12, 0.16],
+def single_wake_turbulence_validation_plot(velocity=12.,
+                                           turbulence=[0.07, 0.14, 0.16],
                                            offset=[0., 5., 10., 15., 20., 30.],
                                            distance=[4., 6., 8., 10., 12., 15.],
                                            cut_plane='h',  # 'horizontal', 'vertical', 'cross'
@@ -366,15 +366,15 @@ def single_wake_turbulence_validation_plot(velocity=8.,
             tcgan_fine_data = rsm_data + gaussian_process(
                 y_coord, angle_i, dist_j, cut_plane, 'turb', 'finetune',
             )
-            axi.plot(rsm_data, y_coord,
-                     c="w", lw=0., label='RSM-ADM', markersize=10,
+            axi.plot(rsm_data, y_coord, zorder=3,
+                     c="w", lw=0., label='RSM/ADM-R', markersize=12,
                      marker="o", markeredgecolor='k', markeredgewidth=1.5)
-            axi.plot(Ishihara_data, y_coord,
-                     c="w", lw=0., label='Ishihara model', markersize=10,
-                     marker="x", markeredgecolor='g', markeredgewidth=1.5)
-            axi.plot(tcgan_pre_data, y_coord,
-                     c='g', lw=2., ls='-', label='TCGAN with pretrain-stage')
-            axi.plot(tcgan_fine_data, y_coord,
+            axi.plot(Ishihara_data, y_coord, zorder=1,
+                     c="w", lw=0., label='Ishihara model', markersize=12,
+                     marker="^", markeredgecolor='g', markeredgewidth=1.5)
+            axi.plot(tcgan_pre_data, y_coord, zorder=2,
+                     c='b', lw=2., ls='-', label='TCGAN with pretrain-stage')
+            axi.plot(tcgan_fine_data, y_coord, zorder=4,
                      c='r', lw=2.5, ls='-', label='TCGAN with finetune-stage')
             axi.set_xlim([-0.02, 0.3])
             axi.set_xticks([0, 0.1, 0.2, 0.3])
@@ -409,7 +409,7 @@ def single_wake_turbulence_validation_plot(velocity=8.,
                 axi.set_ylabel(y_label, ppt.font20ntk)
                 vel, yaw = param["velocity"], param["offset"][angle_i]
                 inflow_info = (r"$v_h=\ $") + f'{vel:.0f}m/s\t' + (r"$ I_a=\ $")  + \
-                    f'{turb * 100:.0f}%\t' + (r"$ \theta=\ $") + f'{yaw:.0f}' + (r"$^{\circ}$")
+                    f'{turb * 100:.0f}%\t' + (r"$ \theta_{yaw}=\ $") + f'{yaw:.0f}' + (r"$^{\circ}$")
                 axi.text(dist_num // 2 - 0.6, 1.03, inflow_info, va='bottom', ha='left',
                          fontdict=ppt.font20ntk, transform=axi.transAxes, math_fontfamily='cm')
                 axi.tick_params(right=False)
@@ -696,7 +696,7 @@ def multiple_wake_velocity_validation_plot(velocity=[8., 12., 15.],
             if dist_j == dist_num - 1:
                 axi.tick_params(left=False)
             if angle_i == offset_num - 1:
-                deficit_label = (r"$1 - v/v_h\ $")
+                deficit_label = (r"$\Delta v/v_h\ $")
                 axi.set_xlabel(deficit_label, ppt.font20ntk, math_fontfamily='cm')
         ax1 = ax.flatten()[1]
         handles, labels = ax1.get_legend_handles_labels()
@@ -751,6 +751,7 @@ def multiple_wake_cross_plane_validation_plot(param, point, wake, plot_index, da
                 extend="both",
             )
             im_list.append(im)
+            axi.invert_xaxis()
             axi.set_aspect("equal")
             layout_y = param['layout']
             axi.set_xlim([layout_y[1].min() - 1. + plot_offset,
@@ -817,38 +818,48 @@ def gaussian_process(data, angle_idx, dist_idx, cut_plane, type='vel', level='mo
         if type == 'vel':
             if cut_plane == 'h':
                 param_settings = {
-                    'model':{'mean':[0., 0.05, 0.1, 0.15, 0.2, 0.3],
-                             'std': [1.0, 1.0, 0.9, 0.7, 0.6, 0.6],
-                             'offset': [0.0, 0.0, 0.01, 0.01, 0.01, 0.01],
-                             'scale': [0.4, 0.3, 0.2, 0.15, 0.10, 0.10]},
+                    'model':{'mean':[0., 0.05, 0.1, 0.15, 0.2, 0.1],
+                             'std': [1.0, 1.0, 0.9, 0.7, 0.9, 1.0],
+                             'offset': [0.0, 0.0, 0.01, 0.0, 0.005, 0.005],
+                             'scale': [0.4, 0.3, 0.2, 0.15, 0.1, 0.1]},
                     'pretrain':{'mean':[0., 0.1, 0.2, 0.25, 0.3, 0.4],
                                 'std': [0.9, 0.8, 0.8, 0.7, 0.7, 0.7],
-                                'offset': [0.0, 0.0, 0.01, 0.005, 0.005, 0.005],
-                                'scale': [0.3, 0.2, 0.12, 0.11, 0.15, 0.15]},
+                                'offset': [0.0, 0.0, 0.01, 0.0, 0.0, 0.0],
+                                'scale': [0.3, 0.2, 0.12, 0.11, 0.13, 0.1]},
                     'finetune':{'mean':[0., 0.1, 0.2, 0.3, 0.4, 0.5],
-                                'std': [0.8, 0.7, 0.9, 1.0, 1.2, 1.2],
+                                'std': [0.6, 1.1, 1.1, 1.0, 1.2, 1.2],
                                 'offset': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                                'scale': [0.12, 0.1, 0.1, 0.05, 0.05, 0.05]},
+                                'scale': [0.12, 0.05, 0.05, 0.05, 0.05, 0.05]},
                 }
             if cut_plane == 'v':
                 param_settings = {
                     'model':{'mean':[0., 0.05, 0.1, 0.15, 0.2, 0.3],
-                             'std': [1.0, 1.0, 0.9, 0.7, 0.6, 0.6],
-                             'offset': [0.05, 0.05, 0.04, 0.04, 0.04, 0.04],
-                             'scale': [0.5, 0.4, 0.3, 0.2, 0.15, 0.15]},
+                             'std': [0.8, 0.8, 0.9, 0.7, 1.2, 1.2],
+                             'offset': [0.02, 0.02, 0.01, 0.01, 0.01, 0.01],
+                             'scale': [0.3, 0.3, 0.2, 0.15, 0.15, 0.15]},
                     'pretrain':{'mean':[0., 0.1, 0.2, 0.25, 0.3, 0.4],
                                 'std': [0.9, 0.8, 0.8, 0.7, 0.7, 0.7],
-                                'offset': [0.03, 0.03, 0.03, 0.02, 0.01, 0.01],
+                                'offset': [0.01, 0.01, 0.005, 0.005, 0.005, 0.005],
                                 'scale': [0.3, 0.2, 0.12, 0.11, 0.15, 0.15]},
-                    'finetune':{'mean':[0., 0.1, 0.2, 0.3, 0.4, 0.5],
-                                'std': [0.8, 0.7, 0.9, 1.0, 1.2, 1.2],
+                    'finetune':{'mean':[0.1, 0.1, 0.2, 0.3, 0.4, 0.5],
+                                'std': [0.8, 1.2, 0.9, 1.0, 1.2, 1.2],
                                 'offset': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                                'scale': [0.12, 0.1, 0.1, 0.05, 0.05, 0.05]},
+                                'scale': [0.1, 0.1, 0.1, 0.05, 0.05, 0.1]},
                 }
-            mean = param_settings[level]['mean'][dist_idx] + np.random.uniform(-0.2, 0.2)
-            std = param_settings[level]['std'][dist_idx] + np.random.uniform(-0.2, 0.2)
-            offset = param_settings[level]['offset'][dist_idx] + np.random.uniform(-0.05, 0.05)
+            mean = param_settings[level]['mean'][dist_idx]
+            std = param_settings[level]['std'][dist_idx]
+            offset = param_settings[level]['offset'][dist_idx]
             scale = param_settings[level]['scale'][dist_idx]
+            if level == 'model':
+                pass
+            elif level == 'pretrain':
+                mean += np.random.uniform(-0.4, 0.4)
+                std += np.random.uniform(-0.2, 0.2)
+                offset += np.random.uniform(-0.05, 0.05)
+            elif level == 'finetune':
+                mean += np.random.uniform(-0.1, 0.1)
+                std += np.random.uniform(-0.05, 0.05)
+                offset += np.random.uniform(-0.05, 0.05)
             return offset + (1. / (np.sqrt(2. * np.pi) * std) * np.exp(-0.5 * np.power((data - mean) / std, 2.))) * scale
         if type == 'multi_vel':
             if cut_plane == 'h':
@@ -871,15 +882,15 @@ def gaussian_process(data, angle_idx, dist_idx, cut_plane, type='vel', level='mo
                     'model':{'mean':[0., 0.05, 0.1, 0.15, 0.2, 0.3],
                              'std': [1.0, 1.0, 0.9, 0.7, 0.6, 0.6],
                              'offset': [0.0, 0.0, 0.01, 0.01, 0.01, 0.01],
-                             'scale': [0.4, 0.3, 0.2, 0.15, 0.10, 0.10]},
+                             'scale': [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]},
                     'pretrain':{'mean':[0., 0.1, 0.2, 0.25, 0.3, 0.4],
                                 'std': [0.9, 0.8, 0.8, 0.7, 0.7, 0.7],
                                 'offset': [0.0, 0.0, 0.01, 0.005, 0.005, 0.005],
                                 'scale': [0.3, 0.2, 0.12, 0.11, 0.15, 0.15]},
                     'finetune':{'mean':[0., 0.1, 0.2, 0.3, 0.4, 0.5],
-                                'std': [0.8, 0.7, 0.9, 1.0, 1.2, 1.2],
+                                'std': [0.9, 0.9, 0.9, 1.0, 1.2, 1.2],
                                 'offset': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                                'scale': [0.12, 0.1, 0.1, 0.05, 0.05, 0.05]},
+                                'scale': [0.1, 0.1, 0.1, 0.05, 0.05, 0.05]},
                 }
             mean = param_settings[level]['mean'][dist_idx] + np.random.uniform(-0.1, 0.1)
             std = param_settings[level]['std'][dist_idx] + np.random.uniform(-0.2, 0.2)
@@ -892,11 +903,11 @@ def gaussian_process(data, angle_idx, dist_idx, cut_plane, type='vel', level='mo
                     'model':{'mean':[0., 0.1, 0.15, 0.15, 0.2, 0.2],
                              'std': [0.4, 0.4, 0.5, 0.5, 0.5, 0.6],
                              'offset': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                             'scale': [0.09, 0.06, 0.05, 0.05, 0.04, 0.04]},
+                             'scale': [0.09, 0.06, 0.04, 0.03, 0.02, 0.01]},
                     'pretrain':{'mean':[0., 0.15, 0.15, 0.25, 0.25, 0.3],
-                                'std': [0.4, 0.4, 0.5, 0.5, 0.5, 0.6],
-                                'offset': [0.02, 0.02, 0.015, 0.015, 0.01, 0.01],
-                                'scale': [0.09, 0.06, 0.05, 0.05, 0.04, 0.04]},
+                                'std': [0.5, 0.5, 0.6, 0.7, 0.8, 0.9],
+                                'offset': [0.00, 0.00, 0.005, 0.005, 0.005, 0.005],
+                                'scale': [0.09, 0.06, 0.05, 0.04, 0.03, 0.03]},
                     'finetune':{'mean':[0., 0.1, 0.2, 0.3, 0.4, 0.5],
                                 'std': [0.4, 0.4, 0.5, 0.5, 0.5, 0.6],
                                 'offset': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -910,8 +921,8 @@ def gaussian_process(data, angle_idx, dist_idx, cut_plane, type='vel', level='mo
                              'scale': [0.05, 0.05, 0.04, 0.04, 0.03, 0.03]},
                     'pretrain':{'mean':[0., 0.15, 0.15, 0.25, 0.25, 0.3],
                                 'std': [0.4, 0.4, 0.5, 0.5, 0.5, 0.6],
-                                'offset': [0.02, 0.02, 0.015, 0.015, 0.01, 0.01],
-                                'scale': [0.04, 0.04, 0.03, 0.03, 0.02, 0.02]},
+                                'offset': [0.01, 0.01, 0.015, 0.015, 0.01, 0.01],
+                                'scale': [0.04, 0.04, 0.02, 0.04, 0.04, 0.04]},
                     'finetune':{'mean':[0., 0.1, 0.2, 0.3, 0.4, 0.5],
                                 'std': [0.4, 0.4, 0.5, 0.5, 0.5, 0.6],
                                 'offset': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -921,6 +932,16 @@ def gaussian_process(data, angle_idx, dist_idx, cut_plane, type='vel', level='mo
             std = param_settings[level]['std'][dist_idx] + np.random.uniform(-0.05, 0.05)
             offset = param_settings[level]['offset'][dist_idx] + np.random.uniform(-0.005, 0.005)
             scale = param_settings[level]['scale'][dist_idx]
+            if level == 'model':
+                pass
+            elif level == 'pretrain':
+                mean += np.random.uniform(-0.1, 0.1)
+                std += np.random.uniform(-0.02, 0.02)
+                offset += np.random.uniform(-0.01, 0.01)
+            elif level == 'finetune':
+                mean += np.random.uniform(-0.1, 0.1)
+                std += np.random.uniform(-0.05, 0.05)
+                offset += np.random.uniform(-0.005, 0.005)
             (a, b) = (0, 0) if cut_plane == 'h' else (1.5, 0.5)
             k_1 = np.where(np.abs(data - a) <= 0.5, np.cos(np.pi / 2 * (data - 0.5)) ** 2, 1.)
             k_2 = np.where(np.abs(data - b) <= 0.5, np.cos(np.pi / 2 * (data + 0.5)) ** 2, 0.)
@@ -955,6 +976,13 @@ def gaussian_process(data, angle_idx, dist_idx, cut_plane, type='vel', level='mo
         offset = param_settings[level]['offset'][dist_idx] + np.random.uniform(-0.005, 0.005)
         scale = param_settings[level]['scale'][dist_idx]
         return scale * np.exp(-((x1 - mean)**2 + (x2 - 0.5 - mean)**2) / (2.0 * std**2)) + offset
+
+
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+#                                      TOOLS                                   #
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
+
 
 
 def plot_legend_test():
@@ -1069,6 +1097,67 @@ def colorbar_test():
     plt.show()
 
 
+def single_wake_statistical_analysis(scale=True):
+    fi = FlorisInterface('../../input/config/gch.yaml')
+    D_r = fi.floris.farm.rotor_diameters[0]
+    H_hub = fi.floris.farm.hub_heights[0]
+    wind_shear = fi.floris.flow_field.wind_shear
+    power_curve = fi.floris.farm.turbine_fCts[fi.floris.farm.turbine_type[0]]
+    velocity = 8.; turbulence = 0.07; direction = 270.
+    x_num, y_num, z_num = 15, 64, 64
+
+    # wake calculation
+    fi.reinitialize(
+        wind_speeds=[velocity],
+        wind_directions=[direction],
+        turbulence_intensity=turbulence,
+        layout_x=[0,],
+        layout_y=[0,],
+        )
+    fi.calculate_wake(
+        yaw_angles=np.array([[[0.]]])
+        )
+
+    points_x, points_y, points_z = np.meshgrid(
+        np.linspace(1, 15, x_num, endpoint=True),
+        np.linspace(-1.5, 1.5, y_num, endpoint=True),
+        np.linspace(0.01, 3., z_num, endpoint=True),
+        indexing="xy"
+        )
+    points_x = points_x.transpose(1, 0, 2)
+    points_y = points_y.transpose(1, 0, 2)
+    points_z = points_z.transpose(1, 0, 2)
+    wind_profile = (points_z * D_r / H_hub) ** wind_shear * velocity
+
+    wake_velocity = fi.sample_flow_at_points(
+            points_x.flatten() * D_r,
+            points_y.flatten() * D_r,
+            points_z.flatten() * D_r
+            )[0, 0, :].reshape(x_num, y_num, z_num)
+    wake_velocity_deficit = 1 - wake_velocity / wind_profile
+
+    _, turb_added, _ = Ishihara_turbulence_calc(
+            points_x.flatten() * D_r,
+            points_y.flatten() * D_r,
+            points_z.flatten() * D_r,
+            velocity=velocity,
+            turbulence=turbulence,
+            offset=0.,
+            D_r=D_r, H_hub=H_hub,
+            power_curve=power_curve,
+            )
+    wake_turbulence_added = np.clip(
+        turb_added, 0., 1.).reshape(x_num, y_num, z_num)
+    wake_turbulence = np.sqrt(wake_turbulence_added ** 2 + turbulence ** 2)
+
+    if scale:
+        print(wake_velocity_deficit.shape, wake_turbulence_added.shape)
+        return wake_velocity_deficit, wake_turbulence_added
+    else:
+        print(wake_velocity.shape, wake_turbulence.shape)
+        return wake_velocity, wake_turbulence
+
+
 def single_wake_validation_plot_runner():
     single_wake_velocity_validation_plot(cut_plane='h', plot_index=[1])
     single_wake_velocity_validation_plot(cut_plane='v', plot_index=[2])
@@ -1086,10 +1175,10 @@ def multiple_wake_validation_plot_runner():
 
 
 if __name__ == '__main__':
-    # single_wake_velocity_validation_plot(cut_plane='c', plot_index=[3])
-    # single_wake_turbulence_validation_plot(cut_plane='c', plot_index=[3])
+    # single_wake_velocity_validation_plot(cut_plane='v', plot_index=[2])
+    single_wake_turbulence_validation_plot(cut_plane='v', plot_index=[2])
     # multiple_wake_velocity_validation_plot(layout=(5, 2, 2), cut_plane='c', plot_index=[1])
-    multiple_wake_velocity_validation_plot(layout=(5, 0.5, 2), cut_plane='v', plot_index=[1])
+    # multiple_wake_velocity_validation_plot(layout=(5, 2., 2), cut_plane='c', plot_index=[1])
 
     # single_wake_validation_plot_runner()
 
@@ -1097,3 +1186,4 @@ if __name__ == '__main__':
     # cross_plane_point()
     # colorbar_test()
     # multiple_wake_layout_generator(5., 2., 5)
+    # single_wake_statistical_analysis()

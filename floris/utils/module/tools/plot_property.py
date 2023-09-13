@@ -70,7 +70,6 @@ font22bnk = {'family': 'Times New Roman',
              'weight': 'bold',
              'style': 'normal',
              'size': 22,
-             'color': 'k',
              }
 
 font25bnk = {'family': 'Times New Roman',
