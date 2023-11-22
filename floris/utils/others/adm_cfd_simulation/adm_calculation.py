@@ -235,8 +235,8 @@ def lift_drag_fitting():
 
 
 if __name__ == "__main__":
-    # adm = ADMSimulator()
-    # adm.induction_plot()
+    adm = ADMSimulator()
+    adm.induction_plot()
 
     # print(f"Torque: {adm.torque:.2f} (N.m)")
     # print(f"C_T: {adm.C_t:.4f}  Measured C_T: {adm.measured_thrust(adm.v_0):.4f}")
@@ -244,4 +244,4 @@ if __name__ == "__main__":
 
     # attack_angle_comparsion()
     # lift_drag_fitting()
-    iteration_comparsion()
+    # iteration_comparsion()
