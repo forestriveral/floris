@@ -34,10 +34,16 @@ class LayoutOptimizationPyOptSparse(LayoutOptimization):
 =======
         timeLimit=None,
         storeHistory='hist.hist',
+<<<<<<< HEAD
         hotStart=None
 >>>>>>> NREL/main
+=======
+        hotStart=None,
+        enable_geometric_yaw=False,
+>>>>>>> NREL/develop
     ):
-        super().__init__(fi, boundaries, min_dist=min_dist, freq=freq)
+        super().__init__(fi, boundaries, min_dist=min_dist, freq=freq,
+                         enable_geometric_yaw=enable_geometric_yaw)
 
         self.x0 = self._norm(self.fi.layout_x, self.xmin, self.xmax)
         self.y0 = self._norm(self.fi.layout_y, self.ymin, self.ymax)
@@ -47,6 +53,7 @@ class LayoutOptimizationPyOptSparse(LayoutOptimization):
         self.storeHistory = storeHistory
         self.timeLimit = timeLimit
         self.hotStart = hotStart
+        self.enable_geometric_yaw = enable_geometric_yaw
 
 >>>>>>> NREL/main
         try:
@@ -123,10 +130,13 @@ class LayoutOptimizationPyOptSparse(LayoutOptimization):
         self.fi.reinitialize(layout_x = self.x, layout_y = self.y)
 >>>>>>> NREL/main
 
+        # Compute turbine yaw angles using PJ's geometric code (if enabled)
+        yaw_angles = self._get_geoyaw_angles()
+
         # Compute the objective function
         funcs = {}
         funcs["obj"] = (
-            -1 * self.fi.get_farm_AEP(self.freq) / self.initial_AEP
+            -1 * self.fi.get_farm_AEP(self.freq, yaw_angles=yaw_angles) / self.initial_AEP
         )
 
         # Compute constraints, if any are defined for the optimization

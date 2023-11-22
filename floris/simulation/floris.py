@@ -34,6 +34,7 @@ from floris.simulation import (
     full_flow_turbopark_solver,
     Grid,
     PointsGrid,
+    sequential_multidim_solver,
     sequential_solver,
     State,
     TurbineCubatureGrid,
@@ -82,8 +83,12 @@ class Floris(BaseClass):
 
         # Initialize farm quanitities that depend on other objects
         self.farm.construct_turbine_map()
-        self.farm.construct_turbine_fCts()
-        self.farm.construct_turbine_power_interps()
+        if self.wake.model_strings['velocity_model'] == 'multidim_cp_ct':
+            self.farm.construct_multidim_turbine_fCts()
+            self.farm.construct_multidim_turbine_power_interps()
+        else:
+            self.farm.construct_turbine_fCts()
+            self.farm.construct_turbine_power_interps()
         self.farm.construct_hub_heights()
         self.farm.construct_rotor_diameters()
         self.farm.construct_turbine_TSRs()
@@ -195,7 +200,7 @@ class Floris(BaseClass):
     def initialize_domain(self):
         """Initialize solution space prior to wake calculations"""
 
-        # Initialize field quanitities; doing this immediately prior to doing
+        # Initialize field quantities; doing this immediately prior to doing
         # the calculation step allows for manipulating inputs in a script
         # without changing the data structures
         self.flow_field.initialize_velocity_field(self.grid)
@@ -238,6 +243,13 @@ class Floris(BaseClass):
             )
         elif vel_model=="empirical_gauss":
             empirical_gauss_solver(
+                self.farm,
+                self.flow_field,
+                self.grid,
+                self.wake
+            )
+        elif vel_model=="multidim_cp_ct":
+            sequential_multidim_solver(
                 self.farm,
                 self.flow_field,
                 self.grid,

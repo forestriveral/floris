@@ -151,7 +151,13 @@ def add_turbine_id_labels(fi: FlorisInterface, ax: plt.Axes, **kwargs):
         )
 
 
-def line_contour_cut_plane(cut_plane, ax=None, levels=None, colors=None, **kwargs):
+def line_contour_cut_plane(
+    cut_plane,
+    ax=None,
+    levels=None,
+    colors=None,
+    label_contours=False,
+    **kwargs):
     """
     Visualize a cut_plane as a line contour plot.
 
@@ -164,6 +170,8 @@ def line_contour_cut_plane(cut_plane, ax=None, levels=None, colors=None, **kwarg
             Defaults to None.
         colors (list, optional): Strings of color specification info.
             Defaults to None.
+        label_contours (Boolean, optional): Flag to include a numerical contour labels
+            on the plot. Defaults to False.
         **kwargs: Additional parameters to pass to `ax.contour`.
     """
 
@@ -183,7 +191,8 @@ def line_contour_cut_plane(cut_plane, ax=None, levels=None, colors=None, **kwarg
         **kwargs,
     )
 
-    ax.clabel(contours, contours.levels, inline=True, fontsize=10, colors="black")
+    if label_contours:
+        ax.clabel(contours, contours.levels, inline=True, fontsize=10, colors="black")
 
     # Make equal axis
     ax.set_aspect("equal")
@@ -199,6 +208,7 @@ def visualize_cut_plane(
     levels=None,
     clevels=None,
     color_bar=False,
+    label_contours=False,
     title="",
     **kwargs
 ):
@@ -224,6 +234,8 @@ def visualize_cut_plane(
             Defaults to None.
         color_bar (Boolean, optional): Flag to include a color bar on the plot.
             Defaults to False.
+        label_contours (Boolean, optional): Flag to include a numerical contour labels
+            on the plot. Defaults to False.
         title (str, optional): User-supplied title for the plot. Defaults to "".
         **kwargs: Additional parameters to pass to line contour plot.
 
@@ -279,6 +291,7 @@ def visualize_cut_plane(
     #                    shading="nearest")
 
     # Add line contour
+<<<<<<< HEAD
     # line_contour_cut_plane(
     #     cut_plane,
     #     ax=ax,
@@ -288,6 +301,18 @@ def visualize_cut_plane(
     #     alpha=0.3,
     #     **kwargs
     # )
+=======
+    line_contour_cut_plane(
+        cut_plane,
+        ax=ax,
+        levels=levels,
+        colors="b",
+        label_contours=label_contours,
+        linewidths=0.8,
+        alpha=0.3,
+        **kwargs
+    )
+>>>>>>> NREL/develop
 
     if cut_plane.normal_vector == "x":
         ax.invert_xaxis()
@@ -316,6 +341,7 @@ def visualize_heterogeneous_cut_plane(
     levels=None,
     clevels=None,
     color_bar=False,
+    label_contours=False,
     title="",
     plot_het_bounds=True,
     **kwargs
@@ -343,6 +369,8 @@ def visualize_heterogeneous_cut_plane(
             Defaults to None.
         color_bar (Boolean, optional): Flag to include a color bar on the plot.
             Defaults to False.
+        label_contours (Boolean, optional): Flag to include a numerical contour labels
+            on the plot. Defaults to False.
         title (str, optional): User-supplied title for the plot. Defaults to "".
         plot_het_bonds (boolean, optional): Flag to include the user-defined bounds of the
             heterogeneous wind speed area. Defaults to True.
@@ -395,6 +423,7 @@ def visualize_heterogeneous_cut_plane(
         ax=ax,
         levels=levels,
         colors="b",
+        label_contours=label_contours,
         linewidths=0.8,
         alpha=0.3,
         **kwargs
