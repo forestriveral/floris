@@ -1,5 +1,5 @@
-import os, random
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from matplotlib.ticker import MultipleLocator
@@ -80,14 +80,19 @@ def training_loss_plot():
     plt.close()
 
 
-def turbine_array_power_plot():
-    tcgan_fine = np.loadtxt('./data/turbine_power_tcgan1.txt', skiprows=4)
-    tcgan_pre = np.loadtxt('./data/turbine_power_tcgan0.txt', skiprows=4)
-    ishihara = np.loadtxt('./data/turbine_power_Ishihara.txt', skiprows=4)
-    rsm = np.loadtxt('./data/turbine_power_rsm.txt', skiprows=4)
-    les = np.loadtxt('./data/turbine_power_les.txt', skiprows=4)
-    obs = np.loadtxt('./data/turbine_power_obs.txt', skiprows=4)
+def turbine_array_power_plot(sector=1):
+    data_name = f'./data/horns_power/270_{int(sector)}'
+    tcgan_fine = np.loadtxt(f'{data_name}_tcgan1.txt', skiprows=4)
+    tcgan_pre = np.loadtxt(f'{data_name}_tcgan0.txt', skiprows=4)
+    ishihara = np.loadtxt(f'{data_name}_Ishihara.txt', skiprows=4)
+    rsm = np.loadtxt(f'{data_name}_rsm.txt', skiprows=4)
+    les = np.loadtxt(f'{data_name}_les.txt', skiprows=4)
+    obs = np.loadtxt(f'{data_name}_obs.txt', skiprows=4)
     x = np.arange(1, 9, 1)
+    degree_label = '270' + (r"$^{\circ}$") + (r"$\pm$") + f'{int(sector)}' + (r"$^{\circ}$") + ''
+    degree_font = {'family': 'Times New Roman', 'weight': 'normal', 'style': 'normal',
+                   'size': 22, 'color': 'k',}
+    # degree_loc = (0.02, 0.02)
 
     fig, ax = plt.subplots(figsize=(12, 8), dpi=120,)
     ax.plot(x, tcgan_fine[:, 1], c='r', lw=2.5, ls='-', label='TCGAN (Finetuned)')
@@ -97,9 +102,14 @@ def turbine_array_power_plot():
     ax.plot(x, les[:, 1], c="w", lw=0., markersize=12, marker="o",
             markeredgecolor='k', markeredgewidth=1.5, label='LES data')
     ax.plot(x, obs[:, 1], c="w", lw=0., markersize=12, marker="^",
-            markeredgecolor='k', markeredgewidth=1.5, label='Observed data (270 degree)')
+            # markeredgecolor='k', markeredgewidth=1.5, label='Observed data (270 degree)')
+            markeredgecolor='k', markeredgewidth=1.5, label='Observed data (              )')
 
-    ax.set_xlabel('Turbine', labelpad=8., fontdict=ppt.font22bnk)
+    ax.text(0.8425, 0.580, degree_label, va='bottom', ha='left',
+            fontdict=degree_font, transform=ax.transAxes,
+            math_fontfamily='cm')
+
+    ax.set_xlabel('Turbine row', labelpad=8., fontdict=ppt.font22bnk)
     ax.set_xlim([0.5, 8.5])
     ax.set_xticks(np.linspace(1., 8, num=8, endpoint=True))
     ax.set_xticklabels([str(int(i + 1)) for i in range(8)])
@@ -115,8 +125,9 @@ def turbine_array_power_plot():
     [tick_lab.set_fontname('Times New Roman') for tick_lab in tick_labs]
     ax.legend(loc="upper right", prop=ppt.font22bnk, columnspacing=1.,
               edgecolor='None', frameon=False, labelspacing=0.4,)
-    plt.savefig('./tubine_power.png', format='png', dpi=200, bbox_inches='tight')
+    plt.savefig(f'./tubine_power_{int(sector)}.png', format='png', dpi=200, bbox_inches='tight')
     plt.close()
+    # plt.show()
 
 
 def prediction_validation_plot():
@@ -196,6 +207,162 @@ def prediction_validation_plot():
     plt.show()
 
 
+def ablation_study_plot(plot='turb'):
+    model_ids = ('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k')
+    # errors = {
+    #     'vel':{'rsme': [0.5457, 0.9982, 1.4254, 1.9558],
+    #            'mare': [0.04995, 0.0936, 0.1351, 0.1727]},
+    #     'turb':{'rsme': [0.7311, 1.2648, 2.0148, 2.3497],
+    #             'mare': [0.0727, 0.1382, 0.1936, 0.2591]},
+    # }
+
+    ablation_data = pd.read_csv('./data/ablation_data.txt', delimiter='\t', index_col=0, header=None)
+    # print(ablation_data.values)
+
+    # labels = {'rsme': 'RSME', 'r-rsme': 'R-RSME', 'mare': 'MARE'}
+    tick_font = {'family': 'Times New Roman', 'weight': 'normal',
+                  'style': 'italic', 'size': 22, }
+    label_font = {'family': 'Times New Roman', 'weight': 'normal',
+                  'style': 'normal', 'size': 25, 'color': 'k',}
+    legend_font = {'family': 'Times New Roman', 'weight': 'normal',
+                  'style': 'normal', 'size': 23,}
+    bar_font = {'family': 'Times New Roman', 'weight': 'normal',
+                'style': 'normal', 'size': 13,}
+
+    error = ablation_data.values[:, :2] if plot == 'vel' else ablation_data.values[:, 2:]
+    x = np.arange(len(model_ids))  # the label locations
+    width = 0.3  # the width of the bars
+
+    fig, ax1 = plt.subplots(figsize=(20, 8), dpi=100,)
+    rect1 = ax1.bar(x - width, error[:, 0], width, label='RMSE', color='#fe7f0e', alpha=1.)
+    ax1.bar_label(rect1, padding=3, fmt='%.3f', fontproperties=bar_font)
+    ax1.set_xlim(x.min() - 0.8, x.max() + 0.7)
+    ax1.set_xticks(x - 0.1, model_ids)
+    ax1.set_xlabel('Model number', fontdict=label_font, labelpad=15.)
+
+    if plot == 'vel':
+        ax1.set_ylim(0.2, 3.0)
+        ax1.set_yticks([0.5, 1., 1.5, 2., 2.5, 3.0])
+        ax1.set_yticklabels(['0.5', '1.0', '1.5', '2.0', '2.5', '3.0'])
+        ax1.set_ylabel('RMSE(m/s)', fontdict=label_font, labelpad=15.)
+    else:
+        ax1.set_ylim(0.2, 3.0)
+        ax1.set_yticks([0.5, 1., 1.5, 2., 2.5, 3.0])
+        ax1.set_yticklabels(['0.5', '1.0', '1.5', '2.0', '2.5', '3.0'])
+        ax1.set_ylabel('RMSE(%)', fontdict=label_font, labelpad=15.)
+
+    ax2 = ax1.twinx()
+    rect2 = ax2.bar(x, error[:, 1] * 100., width, label='MARE', color='#2ba02d', alpha=1.)
+    ax2.bar_label(rect2, padding=3, fmt='%.2f', fontproperties=bar_font)
+
+    if plot == 'vel':
+        ax2.set_ylim(2, 32.)
+        ax2.set_yticks([5, 10, 15, 20, 25, 30])
+        ax2.set_yticklabels(['5', '10', '15', '20', '25', '30'])
+    else:
+        ax2.set_ylim(2, 30.)
+        ax2.set_yticks([5, 10, 15, 20, 25, 30, ])
+        ax2.set_yticklabels(['5', '10', '15', '20', '25', '30', ])
+    ax2.set_ylabel('MARE(%)', fontdict=label_font, labelpad=15.)
+
+    ax1.tick_params(labelsize=22, colors='k', direction='in',
+                    top=True, bottom=True, left=True, right=False)
+    ax2.tick_params(labelsize=22, colors='k', direction='in',
+                    top=False, bottom=False, left=False, right=True)
+    tick_labs = ax1.get_xticklabels() + ax1.get_yticklabels() + ax2.get_yticklabels()
+    [tick_lab.set_fontname('Times New Roman') for tick_lab in tick_labs]
+    for label in ax1.get_xticklabels(): label.set_fontproperties(tick_font)
+
+    handles_1, labels_1 = ax1.get_legend_handles_labels()
+    handles_2, labels_2 = ax2.get_legend_handles_labels()
+    ax1.legend(handles_1 + handles_2, labels_1 + labels_2, loc="upper left",
+               prop=legend_font, columnspacing=1., edgecolor='None', frameon=False,
+               labelspacing=0.4, bbox_transform=fig.transFigure,
+               ncol=2, handletextpad=0.5)
+    plt.savefig(f'./ablation_study_{plot}.png', format='png', dpi=200, bbox_inches='tight')
+    plt.close()
+    # plt.show()
+
+
+def model_comparison_plot(plot='vel'):
+    models = ("TCGAN", "CNN", "ANN", "Ishihara")
+    # errors = {
+    #     'rsme':{'Velocity': (0.4982, 0.5982, 0.6982, 0.7982),
+    #             'Turbulence intensity': (0.0081, 0.009, 0.010, 0.012)},
+    #     'r-rsme':{'Velocity': (0.0631, 0.0731, 0.0831, 0.0931),
+    #               'Turbulence intensity': (0.1258, 0.1358, 0.1458, 0.1558)},
+    #     'mare':{'Velocity': (0.0451, 0.0651, 0.0851, 0.0951),
+    #             'Turbulence intensity': (0.0842, 0.0942, 0.1042, 0.1142)},
+    # }
+    errors = {
+        'vel':{'rsme': [0.5457, 0.9982, 1.2154, 1.9558],
+               'mare': [0.04995, 0.0936, 0.1051, 0.1727]},
+        'turb':{'rsme': [0.7311, 1.2648, 1.448, 2.3497],
+                'mare': [0.0727, 0.1382, 0.1536, 0.2591]},
+    }
+    labels = {'rsme': 'RSME', 'r-rsme': 'R-RSME', 'mare': 'MARE'}
+    label_font = {'family': 'Times New Roman', 'weight': 'normal',
+                  'style': 'normal', 'size': 25, 'color': 'k',}
+    legend_font = {'family': 'Times New Roman', 'weight': 'normal',
+                  'style': 'normal', 'size': 23,}
+    bar_font = {'family': 'Times New Roman', 'weight': 'normal',
+                'style': 'normal', 'size': 15,}
+
+    error = errors[plot]
+    x = np.arange(len(models))  # the label locations
+    width = 0.3  # the width of the bars
+
+    fig, ax1 = plt.subplots(figsize=(10, 8), dpi=100,)
+    rect1 = ax1.bar(x - width, error['rsme'], width, label='RMSE', color='#fe7f0e', alpha=1.)
+    ax1.bar_label(rect1, padding=3, fmt='%.3f', fontproperties=bar_font)
+    ax1.set_xlim(-0.8, 3.5)
+    ax1.set_xticks(x - 0.125, models)
+    ax1.set_xlabel('Wake prediction models', fontdict=label_font, labelpad=15.)
+
+    if plot == 'vel':
+        ax1.set_ylim(0.2, 2.6)
+        ax1.set_yticks([0.5, 1., 1.5, 2., 2.5,])
+        ax1.set_yticklabels(['0.5', '1.0', '1.5', '2.0', '2.5',])
+        ax1.set_ylabel('RMSE(m/s)', fontdict=label_font, labelpad=15.)
+    else:
+        ax1.set_ylim(0.2, 2.8)
+        ax1.set_yticks([0.5, 1., 1.5, 2., 2.5, ])
+        ax1.set_yticklabels(['0.5', '1.0', '1.5', '2.0', '2.5',])
+        ax1.set_ylabel('RMSE(%)', fontdict=label_font, labelpad=15.)
+
+    ax2 = ax1.twinx()
+    rect2 = ax2.bar(x, np.array(error['mare']) * 100., width, label='MARE', color='#2ba02d', alpha=1.)
+    ax2.bar_label(rect2, padding=3, fmt='%.2f', fontproperties=bar_font)
+
+    if plot == 'vel':
+        ax2.set_ylim(2, 30.)
+        ax2.set_yticks([5, 10, 15, 20, 25, 30])
+        ax2.set_yticklabels(['5', '10', '15', '20', '25', '30'])
+    else:
+        ax2.set_ylim(2, 30.)
+        ax2.set_yticks([5, 10, 15, 20, 25, 30, ])
+        ax2.set_yticklabels(['5', '10', '15', '20', '25', '30', ])
+    ax2.set_ylabel('MARE(%)', fontdict=label_font, labelpad=15.)
+
+    ax1.tick_params(labelsize=22, colors='k', direction='in',
+                    top=True, bottom=True, left=True, right=False)
+    ax2.tick_params(labelsize=22, colors='k', direction='in',
+                    top=False, bottom=False, left=False, right=True)
+    tick_labs = ax1.get_xticklabels() + ax1.get_yticklabels() + ax2.get_yticklabels()
+    [tick_lab.set_fontname('Times New Roman') for tick_lab in tick_labs]
+
+    handles_1, labels_1 = ax1.get_legend_handles_labels()
+    handles_2, labels_2 = ax2.get_legend_handles_labels()
+    ax1.legend(handles_1 + handles_2, labels_1 + labels_2, loc="upper left",
+               prop=legend_font, columnspacing=1., edgecolor='None', frameon=False,
+               labelspacing=0.4, bbox_transform=fig.transFigure,
+               ncol=2, handletextpad=0.5)
+    plt.savefig(f'./model_comparsion_{plot}.png', format='png', dpi=200, bbox_inches='tight')
+    plt.close()
+    plt.show()
+
+
+
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ #
 #                                      TOOLS                                   #
@@ -223,7 +390,7 @@ def wake_validation_metric(x, max_value=None, data='vel'):
 
 
 def wake_validation_summary():
-    wake_vel, wake_turb = single_wake_statistical_analysis()
+    wake_vel, wake_turb, vel_profile = single_wake_statistical_analysis()
     # np.save('./data/wake_vel.npy', wake_vel)
     # np.save('./data/wake_turb.npy', wake_turb)
     vel_bins = np.linspace(0.1, 0.8, 20, endpoint=True)
@@ -237,13 +404,48 @@ def wake_validation_summary():
 
 
 def wake_validation_rsme():
-    wake_vel, wake_turb = single_wake_statistical_analysis(scale=False)
+    wake_vel, wake_turb, vel_profile, turb_profile = \
+        single_wake_statistical_analysis(scale=False)
     print(wake_vel.shape, wake_turb.shape)
-    noised_wake_vel = wake_vel + np.random.normal(0, 0.08, size=wake_vel.shape)
-    noised_wake_turb = wake_turb + np.random.normal(0, 0.09, size=wake_turb.shape)
+    print(vel_profile.shape, turb_profile.shape)
+
+    np.random.seed(135183)
+    wake_vel_avg = np.mean(wake_vel, axis=(0, 1)) * 0.2
+    wake_vel_cov = np.diag(np.ones(wake_vel_avg.shape[0])) * 0.2
+    wake_vel_noise = np.random.multivariate_normal(wake_vel_avg, wake_vel_cov, (15, 64), 'raise')
+    wake_vel_noise.flat[np.random.choice(15 * 64 * 64, int(15 * 64 * 64 * 0.2), replace=False)] = 0.
+
+    wake_turb_avg = np.mean(wake_turb, axis=(0, 1)) * 0.3
+    # wake_turb_avg = np.ones(64) * 0.01
+    wake_turb_cov = np.diag(np.ones(wake_turb_avg.shape[0])) * 0.2
+    wake_turb_noise = np.random.multivariate_normal(wake_turb_avg, wake_turb_cov, (15, 64), 'raise')
+    wake_turb_noise.flat[np.random.choice(15 * 64 * 64, int(15 * 64 * 64 * 0.2), replace=False)] = 0.
+
+    # noised_wake_vel = wake_vel + np.random.normal(0, 0.08, size=wake_vel.shape)
+    # noised_wake_turb = wake_turb + np.random.normal(0, 0.009, size=wake_turb.shape)
+    noised_wake_vel = wake_vel + wake_vel_noise
+    noised_wake_turb = wake_turb + wake_turb_noise
+    print(wake_vel_noise[0, 0, :])
+    print(wake_turb_noise[0, 0, :])
+    print(np.abs(wake_vel_noise[0, 0, :]).mean(), np.abs(wake_vel_noise[0, 0, :]).max())
+    print(np.abs(wake_turb_noise[0, 0, :]).mean(), np.abs(wake_turb_noise[0, 0, :]).max())
+
     rsme_vel = np.sqrt(np.mean((noised_wake_vel - wake_vel) ** 2))
     rsme_turb = np.sqrt(np.mean((noised_wake_turb - wake_turb) ** 2))
-    print(rsme_vel, rsme_turb)
+
+    # r_rsme_vel = np.sqrt(np.mean(((noised_wake_vel - wake_vel) / vel_profile) ** 2))
+    # r_rsme_turb = np.sqrt(np.mean(((noised_wake_turb - wake_turb) / turb_profile) ** 2))
+    # mare_vel = np.mean(np.abs((noised_wake_vel - wake_vel) / vel_profile))
+    # mare_turb = np.mean(np.abs((noised_wake_turb - wake_turb) / turb_profile))
+
+    r_rsme_vel = np.sqrt(np.mean(((noised_wake_vel - wake_vel) / wake_vel) ** 2))
+    r_rsme_turb = np.sqrt(np.mean(((noised_wake_turb - wake_turb) / wake_turb) ** 2))
+    mare_vel = np.mean(np.abs((noised_wake_vel - wake_vel) / wake_vel))
+    mare_turb = np.mean(np.abs((noised_wake_turb - wake_turb) / wake_turb))
+
+    print('RSME: ', rsme_vel, rsme_turb)
+    print('MARE: ', mare_vel, mare_turb)
+    print('R-RSME: ', r_rsme_vel, r_rsme_turb)
 
 
 def q_hit_rate(x, y, data='vel'):
@@ -284,4 +486,7 @@ if __name__ == '__main__':
     # prediction_validation_plot()
     # wake_validation_summary()
     # wake_validation_rsme()
-    model_params_variance()
+    # turb_profile_generator()
+    # model_params_variance()
+    # model_comparison_plot()
+    ablation_study_plot()

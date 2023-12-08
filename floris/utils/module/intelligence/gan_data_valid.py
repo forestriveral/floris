@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from matplotlib.patheffects import withStroke
 from matplotlib.ticker import MultipleLocator
+from scipy.interpolate import interp1d
 
 from floris.tools import FlorisInterface
 from floris.utils.module.tools import plot_property as ppt
@@ -1146,16 +1147,29 @@ def single_wake_statistical_analysis(scale=True):
             D_r=D_r, H_hub=H_hub,
             power_curve=power_curve,
             )
-    wake_turbulence_added = np.clip(
-        turb_added, 0., 1.).reshape(x_num, y_num, z_num)
-    wake_turbulence = np.sqrt(wake_turbulence_added ** 2 + turbulence ** 2)
+    wake_turbulence_added = np.clip(turb_added, 0., 1.).reshape(x_num, y_num, z_num) * 100.
+    turb_profile = np.tile(turb_profile_generator(), (15, 64, 1)) * 100.
+    wake_turbulence = np.sqrt(wake_turbulence_added ** 2 + turb_profile ** 2)
 
     if scale:
         print(wake_velocity_deficit.shape, wake_turbulence_added.shape)
-        return wake_velocity_deficit, wake_turbulence_added
+        return wake_velocity_deficit, wake_turbulence_added, wind_profile, turb_profile
     else:
         print(wake_velocity.shape, wake_turbulence.shape)
-        return wake_velocity, wake_turbulence
+        return wake_velocity, wake_turbulence, wind_profile, turb_profile
+
+
+def turb_profile_generator():
+    turb_data = np.loadtxt(f'../../others/gan_paper_plot/data/turb_profile.txt', skiprows=4)
+    turb_data = np.concatenate([np.array([[0.045, 3.1]]), turb_data, np.array([[0.1, 0.009]])], axis=0)
+    # print(turb_data.shape)
+
+    turb_interp = interp1d(turb_data[:, 1], turb_data[:, 0], kind='slinear')
+    point_z = np.linspace(0.01, 3., 64, endpoint=True)
+    turb_profile = turb_interp(point_z)
+    # print(turb_profile)
+
+    return turb_profile
 
 
 def single_wake_validation_plot_runner():

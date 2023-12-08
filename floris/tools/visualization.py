@@ -291,17 +291,6 @@ def visualize_cut_plane(
     #                    shading="nearest")
 
     # Add line contour
-<<<<<<< HEAD
-    # line_contour_cut_plane(
-    #     cut_plane,
-    #     ax=ax,
-    #     levels=levels,
-    #     colors="b",
-    #     linewidths=0.8,
-    #     alpha=0.3,
-    #     **kwargs
-    # )
-=======
     line_contour_cut_plane(
         cut_plane,
         ax=ax,
@@ -312,7 +301,6 @@ def visualize_cut_plane(
         alpha=0.3,
         **kwargs
     )
->>>>>>> NREL/develop
 
     if cut_plane.normal_vector == "x":
         ax.invert_xaxis()

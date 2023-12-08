@@ -135,13 +135,8 @@ class CumulativeGaussCurlVelocityDeficit(BaseModel):
             y_coord_m = y_coord[:, :, m:m+1]
             z_coord_m = z_coord[:, :, m:m+1]
 
-<<<<<<< HEAD
-            # For computing crossplanes, we don't need to compute downstream
-            # turbines from out crossplane position.
-=======
             # For computing cross planes, we don't need to compute downstream
             # turbines from out cross plane position.
->>>>>>> NREL/develop
             if x_coord[:, :, m:m+1].size == 0:
                 break
 
