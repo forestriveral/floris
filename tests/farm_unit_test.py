@@ -59,14 +59,14 @@ def test_farm_init_homogenous_turbines():
 def test_asdict(sample_inputs_fixture: SampleInputs):
     farm = Farm.from_dict(sample_inputs_fixture.farm)
     farm.construct_hub_heights()
-    farm.construct_turbine_ref_tilt_cp_cts()
+    farm.construct_turbine_ref_tilts()
     farm.set_yaw_angles(N_FINDEX)
     farm.set_tilt_to_ref_tilt(N_FINDEX)
     dict1 = farm.as_dict()
 
     new_farm = farm.from_dict(dict1)
     new_farm.construct_hub_heights()
-    new_farm.construct_turbine_ref_tilt_cp_cts()
+    new_farm.construct_turbine_ref_tilts()
     new_farm.set_yaw_angles(N_FINDEX)
     new_farm.set_tilt_to_ref_tilt(N_FINDEX)
     dict2 = new_farm.as_dict()
@@ -94,7 +94,7 @@ def test_check_turbine_type(sample_inputs_fixture: SampleInputs):
 
     # All list of strings from internal library
     farm_data = deepcopy(sample_inputs_fixture.farm)
-    farm_data["turbine_type"] = ["nrel_5MW", "iea_10MW", "iea_15MW", "x_20MW", "nrel_5MW"]
+    farm_data["turbine_type"] = ["nrel_5MW", "iea_10MW", "iea_15MW", "nrel_5MW", "nrel_5MW"]
     farm_data["layout_x"] = np.arange(0, 500, 100)
     farm_data["layout_y"] = np.zeros(5)
     farm = Farm.from_dict(farm_data)

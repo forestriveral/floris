@@ -36,7 +36,6 @@ from floris.simulation import (
     full_flow_turbopark_solver,
     Grid,
     PointsGrid,
-    sequential_multidim_solver,
     sequential_solver,
     State,
     TurbineCubatureGrid,
@@ -85,23 +84,16 @@ class Floris(BaseClass):
             self.logging["file"]["level"],
         )
 
-        self.check_deprecated_inputs()
-
         # Initialize farm quantities that depend on other objects
         self.farm.construct_turbine_map()
-        if self.wake.model_strings['velocity_model'] == 'multidim_cp_ct':
-            self.farm.construct_multidim_turbine_fCts()
-            self.farm.construct_multidim_turbine_power_interps()
-        else:
-            self.farm.construct_turbine_fCts()
-            self.farm.construct_turbine_power_interps()
+        self.farm.construct_turbine_thrust_coefficient_functions()
+        self.farm.construct_turbine_axial_induction_functions()
+        self.farm.construct_turbine_power_functions()
+        self.farm.construct_turbine_power_thrust_tables()
         self.farm.construct_hub_heights()
         self.farm.construct_rotor_diameters()
         self.farm.construct_turbine_TSRs()
-        self.farm.construct_turbine_pPs()
-        self.farm.construct_turbine_pTs()
-        self.farm.construct_turbine_ref_density_cp_cts()
-        self.farm.construct_turbine_ref_tilt_cp_cts()
+        self.farm.construct_turbine_ref_tilts()
         self.farm.construct_turbine_tilt_interps()
         self.farm.construct_turbine_correct_cp_ct_for_tilt()
         self.farm.set_yaw_angles(self.flow_field.n_findex)
@@ -156,43 +148,6 @@ class Floris(BaseClass):
                 self.grid.sorted_coord_indices
             )
 
-    def check_deprecated_inputs(self):
-        """
-        This function should used when the FLORIS input file changes in order to provide
-        an informative error and suggest a fix.
-        """
-
-        error_messages = []
-        # Check for missing values add in version 3.2 and 3.4
-        for turbine in self.farm.turbine_definitions:
-
-            if "ref_density_cp_ct" not in turbine.keys():
-                error_messages.append(
-                    "From FLORIS v3.2, the turbine definition must include 'ref_density_cp_ct'. "
-                    "This value represents the air density at which the provided Cp and Ct "
-                    "curves are defined. Previously, this was assumed to be 1.225 kg/m^3, "
-                    "and other air density values applied were assumed to be a deviation "
-                    "from the defined level. FLORIS now requires the user to explicitly "
-                    "define the reference density. Add 'ref_density_cp_ct' to your "
-                    "turbine definition and try again. For a description of the turbine inputs, "
-                    "see https://nrel.github.io/floris/input_reference_turbine.html."
-                )
-
-            if "ref_tilt_cp_ct" not in turbine.keys():
-                error_messages.append(
-                    "From FLORIS v3.4, the turbine definition must include 'ref_tilt_cp_ct'. "
-                    "This value represents the tilt angle at which the provided Cp and Ct "
-                    "curves are defined. Add 'ref_tilt_cp_ct' to your turbine definition and "
-                    "try again. For a description of the turbine inputs, "
-                    "see https://nrel.github.io/floris/input_reference_turbine.html."
-                )
-
-            if len(error_messages) > 0:
-                raise ValueError(
-                    f"{turbine['turbine_type']} turbine model\n" +
-                    "\n\n".join(error_messages)
-                )
-
     def initialize_domain(self):
         """Initialize solution space prior to wake calculations"""
 
@@ -216,8 +171,8 @@ class Floris(BaseClass):
             self.farm.correct_cp_ct_for_tilt.any():
             self.logger.warning(
                 "The current model does not account for vertical wake deflection due to " +
-                "tilt. Corrections to Cp and Ct can be included, but no vertical wake " +
-                "deflection will occur."
+                "tilt. Corrections to power and thrust coefficient can be included, but no " +
+                "vertical wake deflection will occur."
             )
 
         if vel_model=="cc":
@@ -236,13 +191,6 @@ class Floris(BaseClass):
             )
         elif vel_model=="empirical_gauss":
             empirical_gauss_solver(
-                self.farm,
-                self.flow_field,
-                self.grid,
-                self.wake
-            )
-        elif vel_model=="multidim_cp_ct":
-            sequential_multidim_solver(
                 self.farm,
                 self.flow_field,
                 self.grid,

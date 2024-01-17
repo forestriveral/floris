@@ -18,10 +18,10 @@ import pytest
 from floris.simulation import (
     average_velocity,
     axial_induction,
-    Ct,
     Floris,
     power,
     rotor_effective_velocity,
+    thrust_coefficient,
 )
 from tests.conftest import (
     assert_results_arrays,
@@ -40,27 +40,27 @@ baseline = np.array(
     [
         # 8 m/s
         [
-            [7.9736330, 0.7636044, 1691326.6483808, 0.2568973],
-            [7.9736330, 0.7636044, 1691326.6483808, 0.2568973],
-            [7.9736330, 0.7636044, 1691326.6483808, 0.2568973],
+            [7.9736858, 0.7871515, 1753954.4591792, 0.2693224],
+            [7.9736858, 0.7871515, 1753954.4591792, 0.2693224],
+            [7.9736858, 0.7871515, 1753954.4591792, 0.2693224],
         ],
         # 9 m/s
         [
-            [8.9703371, 0.7625570, 2407841.6718785, 0.2563594],
-            [8.9703371, 0.7625570, 2407841.6718785, 0.2563594],
-            [8.9703371, 0.7625570, 2407841.6718785, 0.2563594],
+            [8.9703965, 0.7858774, 2496427.8618358, 0.2686331],
+            [8.9703965, 0.7858774, 2496427.8618358, 0.2686331],
+            [8.9703965, 0.7858774, 2496427.8618358, 0.2686331],
         ],
         # 10 m/s
         [
-            [9.9670412, 0.7529384, 3298067.1555604, 0.2514735],
-            [9.9670412, 0.7529384, 3298067.1555604, 0.2514735],
-            [9.9670412, 0.7529384, 3298067.1555604, 0.2514735],
+            [9.9671073, 0.7838789, 3417797.0050916, 0.2675559],
+            [9.9671073, 0.7838789, 3417797.0050916, 0.2675559],
+            [9.9671073, 0.7838789, 3417797.0050916, 0.2675559],
         ],
         # 11 m/s
         [
-            [10.9637454, 0.7306256, 4363191.9880631, 0.2404936],
-            [10.9637454, 0.7306256, 4363191.9880631, 0.2404936],
-            [10.9637454, 0.7306256, 4363191.9880631, 0.2404936],
+            [10.9638180, 0.7565157, 4519404.3072862, 0.2532794],
+            [10.9638180, 0.7565157, 4519404.3072862, 0.2532794],
+            [10.9638180, 0.7565157, 4519404.3072862, 0.2532794],
         ],
     ]
 )
@@ -121,44 +121,35 @@ def test_regression_tandem(sample_inputs_fixture):
     farm_avg_velocities = average_velocity(
         velocities,
     )
-    farm_eff_velocities = rotor_effective_velocity(
-        floris.flow_field.air_density,
-        floris.farm.ref_density_cp_cts,
+    farm_cts = thrust_coefficient(
         velocities,
         yaw_angles,
         tilt_angles,
-        floris.farm.ref_tilt_cp_cts,
-        floris.farm.pPs,
-        floris.farm.pTs,
+        floris.farm.turbine_thrust_coefficient_functions,
         floris.farm.turbine_tilt_interps,
         floris.farm.correct_cp_ct_for_tilt,
         floris.farm.turbine_type_map,
-    )
-    farm_cts = Ct(
-        velocities,
-        yaw_angles,
-        tilt_angles,
-        floris.farm.ref_tilt_cp_cts,
-        floris.farm.turbine_fCts,
-        floris.farm.turbine_tilt_interps,
-        floris.farm.correct_cp_ct_for_tilt,
-        floris.farm.turbine_type_map,
+        floris.farm.turbine_power_thrust_tables,
     )
     farm_powers = power(
-        floris.farm.ref_density_cp_cts,
-        farm_eff_velocities,
-        floris.farm.turbine_power_interps,
+        velocities,
+        floris.flow_field.air_density,
+        floris.farm.turbine_power_functions,
+        yaw_angles,
+        tilt_angles,
+        floris.farm.turbine_tilt_interps,
         floris.farm.turbine_type_map,
+        floris.farm.turbine_power_thrust_tables,
     )
     farm_axial_inductions = axial_induction(
         velocities,
         yaw_angles,
         tilt_angles,
-        floris.farm.ref_tilt_cp_cts,
-        floris.farm.turbine_fCts,
+        floris.farm.turbine_axial_induction_functions,
         floris.farm.turbine_tilt_interps,
         floris.farm.correct_cp_ct_for_tilt,
         floris.farm.turbine_type_map,
+        floris.farm.turbine_power_thrust_tables,
     )
     for i in range(n_findex):
         for j in range(n_turbines):
@@ -173,6 +164,7 @@ def test_regression_tandem(sample_inputs_fixture):
             farm_cts,
             farm_powers,
             farm_axial_inductions,
+            max_findex_print=4,
         )
 
     assert_results_arrays(test_results[0:4], baseline)
@@ -316,24 +308,15 @@ def test_regression_small_grid_rotation(sample_inputs_fixture):
     yaw_angles = floris.farm.yaw_angles
     tilt_angles = floris.farm.tilt_angles
 
-    farm_eff_velocities = rotor_effective_velocity(
-        floris.flow_field.air_density,
-        floris.farm.ref_density_cp_cts,
+    farm_powers = power(
         velocities,
+        floris.flow_field.air_density,
+        floris.farm.turbine_power_functions,
         yaw_angles,
         tilt_angles,
-        floris.farm.ref_tilt_cp_cts,
-        floris.farm.pPs,
-        floris.farm.pTs,
         floris.farm.turbine_tilt_interps,
-        floris.farm.correct_cp_ct_for_tilt,
         floris.farm.turbine_type_map,
-    )
-    farm_powers = power(
-        floris.farm.ref_density_cp_cts,
-        farm_eff_velocities,
-        floris.farm.turbine_power_interps,
-        floris.farm.turbine_type_map,
+        floris.farm.turbine_power_thrust_tables,
     )
 
     # A "column" is oriented parallel to the wind direction

@@ -26,7 +26,7 @@ input yaml which sets the steady tilt angle of the turbine based on wind speed. 
 is computed for each turbine based on effective velocity.  This tilt angle is then passed on
 to the respective wake model.
 
-The value of the parameter ref_tilt_cp_ct is the value of tilt at which the ct/cp curves
+The value of the parameter ref_tilt is the value of tilt at which the ct/cp curves
 have been defined.
 
 If `correct_cp_ct_for_tilt` is True, then the difference between the current tilt as
@@ -67,9 +67,11 @@ power_floating = fi_floating.get_turbine_powers().flatten()/1000.
 power_floating_defined_floating = fi_floating_defined_floating.get_turbine_powers().flatten()/1000.
 
 # Grab Ct
-ct_fixed = fi_fixed.get_turbine_Cts().flatten()
-ct_floating = fi_floating.get_turbine_Cts().flatten()
-ct_floating_defined_floating = fi_floating_defined_floating.get_turbine_Cts().flatten()
+ct_fixed = fi_fixed.get_turbine_thrust_coefficients().flatten()
+ct_floating = fi_floating.get_turbine_thrust_coefficients().flatten()
+ct_floating_defined_floating = (
+    fi_floating_defined_floating.get_turbine_thrust_coefficients().flatten()
+)
 
 # Grab turbine tilt angles
 eff_vels = fi_fixed.turbine_average_velocities
