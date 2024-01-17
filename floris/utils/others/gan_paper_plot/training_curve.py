@@ -284,8 +284,8 @@ def ablation_study_plot(plot='turb'):
     # plt.show()
 
 
-def model_comparison_plot(plot='vel'):
-    models = ("TCGAN", "CNN", "ANN", "Ishihara")
+def model_comparison_plot(plot='turb'):
+    models = ("TCGAN", "ViT", "CNN", "ANN", "Ishihara")
     # errors = {
     #     'rsme':{'Velocity': (0.4982, 0.5982, 0.6982, 0.7982),
     #             'Turbulence intensity': (0.0081, 0.009, 0.010, 0.012)},
@@ -295,10 +295,10 @@ def model_comparison_plot(plot='vel'):
     #             'Turbulence intensity': (0.0842, 0.0942, 0.1042, 0.1142)},
     # }
     errors = {
-        'vel':{'rsme': [0.5457, 0.9982, 1.2154, 1.9558],
-               'mare': [0.04995, 0.0936, 0.1051, 0.1727]},
-        'turb':{'rsme': [0.7311, 1.2648, 1.448, 2.3497],
-                'mare': [0.0727, 0.1382, 0.1536, 0.2591]},
+        'vel':{'rsme': [0.5457, 0.9732, 0.9982, 1.2154, 1.9558],
+               'mare': [0.04995, 0.0901, 0.0936, 0.1051, 0.1727]},
+        'turb':{'rsme': [0.7311, 1.1538, 1.2648, 1.448, 2.3497],
+                'mare': [0.0727, 0.1262, 0.1382, 0.1536, 0.2591]},
     }
     labels = {'rsme': 'RSME', 'r-rsme': 'R-RSME', 'mare': 'MARE'}
     label_font = {'family': 'Times New Roman', 'weight': 'normal',
@@ -315,7 +315,7 @@ def model_comparison_plot(plot='vel'):
     fig, ax1 = plt.subplots(figsize=(10, 8), dpi=100,)
     rect1 = ax1.bar(x - width, error['rsme'], width, label='RMSE', color='#fe7f0e', alpha=1.)
     ax1.bar_label(rect1, padding=3, fmt='%.3f', fontproperties=bar_font)
-    ax1.set_xlim(-0.8, 3.5)
+    ax1.set_xlim(-0.8, len(models) * 0.9)
     ax1.set_xticks(x - 0.125, models)
     ax1.set_xlabel('Wake prediction models', fontdict=label_font, labelpad=15.)
 
@@ -358,7 +358,7 @@ def model_comparison_plot(plot='vel'):
                labelspacing=0.4, bbox_transform=fig.transFigure,
                ncol=2, handletextpad=0.5)
     plt.savefig(f'./model_comparsion_{plot}.png', format='png', dpi=200, bbox_inches='tight')
-    plt.close()
+    # plt.close()
     plt.show()
 
 
@@ -480,6 +480,10 @@ def model_params_variance():
         print(param_name[i], param_range[i], np.abs(param_range[i][1] - param_range[i][0]) / 6)
 
 
+def png_to_svg():
+    pass
+
+
 if __name__ == '__main__':
     # training_loss_plot()
     # turbine_array_power_plot()
@@ -489,4 +493,5 @@ if __name__ == '__main__':
     # turb_profile_generator()
     # model_params_variance()
     # model_comparison_plot()
-    ablation_study_plot()
+    # ablation_study_plot()
+    png_to_svg()
